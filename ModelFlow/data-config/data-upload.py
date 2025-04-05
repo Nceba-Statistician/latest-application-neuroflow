@@ -47,20 +47,19 @@ elif Options == "Add API":
             if response.status_code == 200:
                 API_Object = pandas.DataFrame(response.json())
             else:
-                streamlit.write(f"🚨 Failed to fetch data \n status: {response.status_code}")    
+                streamlit.error(f"🚨 Failed to fetch data: {response.status_code}")  
             if "show_data" not in streamlit.session_state:
                 streamlit.session_state["show_data"] = False
             elif API_Object is not None:
                 streamlit.write("Server response was successful!")
-            if streamlit.checkbox("Preview object"):
-                streamlit.write(API_Object.head())
+                if streamlit.checkbox("Preview object"):
+                    streamlit.write(API_Object.head())
         except requests.exceptions.RequestException as e:
             streamlit.write("🚨 Server response failed!")
             if "show_error" not in streamlit.session_state:
                 streamlit.session_state["show_error"] = False
                 if streamlit.checkbox("Preview error"):
                     streamlit.write(f"API url error: \n{e}")
-
 
 # SQL
 
