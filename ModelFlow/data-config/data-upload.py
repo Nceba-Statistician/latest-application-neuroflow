@@ -55,18 +55,13 @@ elif Options == "Add API":
             if streamlit.checkbox("Preview object"):
                 streamlit.write(API_Object.head())
         except requests.exceptions.RequestException as e:
-            streamlit.write("Server response failed!")
+            streamlit.write("🚨 Server response failed!")
             if "show_error" not in streamlit.session_state:
-                streamlit.session_state.show_error = False
-            col_left, col_right = streamlit.columns(2)
-            with col_left:
-                if streamlit.button("See what was the error"):
-                    streamlit.session_state.show_error = True
-            with col_right:
-                if streamlit.button("You can hide the error"):
-                    streamlit.session_state.show_error = False
-            if streamlit.session_state.show_error:
-                streamlit.write(f"Error fetching data: {e}")
+                streamlit.session_state["show_error"] = False
+                if streamlit.checkbox("Preview error"):
+                    streamlit.write(f"API url error: \n{e}")
+
+
 # SQL
 
 elif Options == "Connect to SQL":
