@@ -1,5 +1,8 @@
 streamlit
 pandas
 numpy
-gspread
+requests
 pyodbc
+keras
+scikit-learn
+matplotlib
