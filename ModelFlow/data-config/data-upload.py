@@ -47,7 +47,7 @@ elif Options == "Add API":
             if response.status_code == 200:
                 API_Object = pandas.DataFrame(response.json())
             else:
-                streamlit.error(f"Failed to fetch data: {response.status_code}")    
+                streamlit.error(f"🚨 Failed to fetch data \n status: {response.status_code}")    
             if "show_data" not in streamlit.session_state:
                 streamlit.session_state["show_data"] = False
             elif API_Object is not None:
