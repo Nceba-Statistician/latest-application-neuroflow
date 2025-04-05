@@ -1,0 +1,25 @@
+list_tables = pandas.DataFrame(conn.cursor().execute(query, (Database,)).fetchall())
+                    conn.commit()
+                    streamlit.write(f"List of tables:/n {list_tables}")
+                    Data_extract = streamlit.text_input("Write your script here to extract data: ","")
+                    if Data_extract is not None:
+                        try:
+                            pandas.DataFrame(conn.cursor().execute(Data_extract).fetchall()).head()
+                            conn.commit()
+                        except Exception as e:
+                            streamlit.write("Data was not fetched!")
+                        if "show_fetch_data_error" not in streamlit.session_state:
+                            streamlit.session_state["show_fetch_data_error"] = False
+                        view_fetch_data_error, hide_fetch_data_error = streamlit.columns(2)
+                        with view_fetch_data_error:
+                            if streamlit.button("See error on your query"):
+                                streamlit.session_state["show_fetch_data_error"] = True
+                        with hide_fetch_data_error:
+                            if streamlit.button("Hide this error on your query"):
+                                streamlit.session_state["show_fetch_data_error"] = False
+                        if streamlit.session_state["show_fetch_data_error"]:streamlit.write(f"Error on your query: {e}")
+                
+    else:
+        if not all ([Driver, Server, Database, UserID, Password]):
+            streamlit.warning("Please fill in all fields")
+            # Please enter a valid SQL query       
