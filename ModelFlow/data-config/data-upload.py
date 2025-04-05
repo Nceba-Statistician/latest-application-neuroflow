@@ -62,12 +62,12 @@ elif Options == "Add API":
                     streamlit.session_state["disable"] = True
                     streamlit.warning("")
                 elif Save_options == "CSV":
-                    if streamlit.button():
+                    if streamlit.button("Save"):
                         API_file_name = f"api_data_{datetime.datetime.now().strftime("%YYYY%mm%dd %HH%MM%SS")}.csv"
                         API_Object.to_csv(API_file_name, index=False)
                         streamlit.write(f"File saved as {API_file_name}")
                 elif Save_options == "Excel":
-                    if streamlit.button():
+                    if streamlit.button("Save"):
                         API_file_name = f"api_data_{datetime.datetime.now().strftime("%YYYY%mm%dd %HH%MM%SS")}.xlsx"
                         API_Object.to_excel(API_file_name, index=False)
                         streamlit.write(f"File saved as {API_file_name}")        
