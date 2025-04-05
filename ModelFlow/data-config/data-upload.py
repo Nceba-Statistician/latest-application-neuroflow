@@ -53,7 +53,25 @@ elif Options == "Add API":
             elif API_Object is not None:
                 streamlit.write("Server response was successful!")
                 if streamlit.checkbox("Preview object"):
-                    streamlit.write(API_Object.head())
+                    streamlit.write(API_Object.head())  
+                Save_options = streamlit.selectbox(
+                    "Save your file:",
+                    ["Select format?", "CSV", "Excel"]
+                )
+                if Save_options == "Select format?":
+                    streamlit.session_state["disable"] = True
+                    streamlit.warning("")
+                elif Save_options == "CSV":
+                    if streamlit.button():
+                        API_file_name = f"api_data_{datetime.datetime.now().strftime("%YYYY%mm%dd %HH%MM%SS")}.csv"
+                        API_Object.to_csv(API_file_name, index=False)
+                        streamlit.write(f"File saved as {API_file_name}")
+                elif Save_options == "Excel":
+                    if streamlit.button():
+                        API_file_name = f"api_data_{datetime.datetime.now().strftime("%YYYY%mm%dd %HH%MM%SS")}.xlsx"
+                        API_Object.to_excel(API_file_name, index=False)
+                        streamlit.write(f"File saved as {API_file_name}")        
+
         except requests.exceptions.RequestException as e:
             streamlit.write("🚨 Server response failed!")
             if "show_error" not in streamlit.session_state:
