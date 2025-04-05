@@ -16,39 +16,25 @@ if Options == "select your option":
     streamlit.session_state["disable"] = True
     streamlit.warning("Select options above if your data is ready and if not visit preprocessing")
 elif Options == "Upload CSV":
-    uploaded_file = streamlit.file_uploader("Upload a CSV file", type=["csv"])
+    uploaded_CSV_file = streamlit.file_uploader("Upload a CSV file", type=["csv"])
     if "show_data" not in streamlit.session_state:
-        streamlit.session_state.show_data = False
-    if uploaded_file is not None:
-        file_has_been_uploaded = pandas.read_csv(uploaded_file)
+        streamlit.session_state["show_data"] = False
+    if uploaded_CSV_file is not None:
+        CSV_Object = pandas.read_csv(uploaded_CSV_file)
         streamlit.write("File uploaded successfully!")
-    col1, col2 = streamlit.columns(2)
-    with col1:
-        if streamlit.button("View data"):
-            streamlit.session_state.show_data = True
-    with col2:
-        if streamlit.button("Hide data"):
-            streamlit.session_state.show_data = False
-    if streamlit.session_state.show_data:        
-        streamlit.write(file_has_been_uploaded.head())
+        if streamlit.checkbox("Preview object"):
+            streamlit.write(CSV_Object.head())
 # Excel
 
 elif Options == "Upload Excel":
-    uploaded_file = streamlit.file_uploader("Upload an Excel file", type=["xlsx", "xls"])
+    uploaded_Excel_file = streamlit.file_uploader("Upload an Excel file", type=["xlsx", "xls"])
     if "show_data" not in streamlit.session_state:
-        streamlit.session_state.show_data = False
-    if uploaded_file is not None:
-        file_has_been_uploaded = pandas.read_excel(uploaded_file)
+        streamlit.session_state["show_data"] = False
+    if uploaded_Excel_file is not None:
+        Excel_Object = pandas.read_csv(uploaded_Excel_file)
         streamlit.write("File uploaded successfully!")
-    col1, col2 = streamlit.columns(2)
-    with col1:
-        if streamlit.button("View data"):
-            streamlit.session_state.show_data = True
-    with col2:
-        if streamlit.button("Hide data"):
-            streamlit.session_state.show_data = False
-    if streamlit.session_state.show_data:        
-        streamlit.write(file_has_been_uploaded.head())
+        if streamlit.checkbox("Preview object"):
+            streamlit.write(Excel_Object.head())
 # API
         
 elif Options == "Add API":
@@ -59,23 +45,15 @@ elif Options == "Add API":
         try:
             response = requests.get(url)
             if response.status_code == 200:
-                API_data = pandas.DataFrame(response.json())
+                API_Object = pandas.DataFrame(response.json())
             else:
                 streamlit.error(f"Failed to fetch data: {response.status_code}")    
             if "show_data" not in streamlit.session_state:
                 streamlit.session_state["show_data"] = False
-            elif API_data is not None:
-                API_data_loaded = API_data
+            elif API_Object is not None:
                 streamlit.write("Server response was successful!")
-            col1, col2 = streamlit.columns(2)
-            with col1:
-                if streamlit.button("View data"):
-                    streamlit.session_state.show_data = True
-            with col2:
-                if streamlit.button("Hide data"):
-                    streamlit.session_state.show_data = False
-            if streamlit.session_state.show_data:
-                streamlit.write(API_data_loaded.head())
+            if streamlit.checkbox("Preview object"):
+                streamlit.write(API_Object.head())
         except requests.exceptions.RequestException as e:
             streamlit.write("Server response failed!")
             if "show_error" not in streamlit.session_state:
