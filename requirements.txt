@@ -4,5 +4,6 @@ numpy
 requests
 pyodbc
 tensorflow
+keras
 scikit-learn
 matplotlib
