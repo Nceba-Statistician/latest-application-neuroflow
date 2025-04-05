@@ -3,6 +3,6 @@ pandas
 numpy
 requests
 pyodbc
-keras
+tensorflow
 scikit-learn
 matplotlib

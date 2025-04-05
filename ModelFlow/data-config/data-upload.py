@@ -1,7 +1,7 @@
 import streamlit, pandas, numpy, datetime, json, requests, pyodbc
-from keras.api.models import Sequential
-from keras.api.layers import Input, Dense, Dropout
-from keras.api.callbacks import TensorBoard
+from tensorflow.python.keras.models import Sequential
+from tensorflow.python.keras.layers import Input, Dense, Dropout
+from tensorflow.python.keras.callbacks import TensorBoard
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from matplotlib import pyplot

@@ -2,12 +2,12 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import tensorflow as tf
-from keras.api.models import Sequential
-from keras.api.layers import Dense, Dropout, Input
+from tensorflow.python.keras.models import Sequential
+from tensorflow.python.keras.layers import Dense, Dropout, Input
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 import matplotlib.pyplot as plt
-from keras.api.callbacks import TensorBoard
+from tensorflow.python.keras.callbacks import TensorBoard
 import datetime
 
 # Streamlit UI

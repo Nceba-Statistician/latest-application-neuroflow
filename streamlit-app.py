@@ -1,8 +1,10 @@
-import streamlit, pandas, numpy, json, gspread, pyodbc, datetime
-from keras.api.models import Sequential, load_model
-from keras.api.layers import Input, Dense, Dropout
-from sklearn.model_selection import train_test_split
+import streamlit, pandas, numpy, datetime, json, requests, pyodbc
+from tensorflow.python.keras.models import Sequential
+from tensorflow.python.keras.layers import Input, Dense, Dropout
+from tensorflow.python.keras.callbacks import TensorBoard
 from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
+from matplotlib import pyplot
 
 streamlit.markdown("""<style> .title { position: absolute; font-size: 20px; right: 10px; top: 10px} </style> """,
     unsafe_allow_html=True
