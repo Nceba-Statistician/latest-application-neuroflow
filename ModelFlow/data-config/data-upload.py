@@ -33,12 +33,12 @@ elif Options == "Upload CSV":
             streamlit.warning("")
         elif Save_options == "CSV":
             if streamlit.button("Save"):
-                CSV_file_name = f"api_data_{datetime.datetime.now().strftime("%YYYY%mm%dd %HH%MM%SS")}.csv"
+                CSV_file_name = f"api_data_{datetime.datetime.now().strftime("%Y%m%d %H%M%S")}.csv"
                 CSV_Object.to_csv(CSV_file_name, index=False)
                 streamlit.write(f"File saved as {CSV_file_name}")
         elif Save_options == "Excel":
             if streamlit.button("Save"):
-                CSV_file_name = f"api_data_{datetime.datetime.now().strftime("%YYYY%mm%dd %HH%MM%SS")}.xlsx"
+                CSV_file_name = f"api_data_{datetime.datetime.now().strftime("%Y%m%d %H%M%S")}.xlsx"
                 CSV_Object.to_excel(CSV_file_name, index=False)
                 streamlit.write(f"File saved as {CSV_file_name}")      
 # Excel
@@ -61,12 +61,12 @@ elif Options == "Upload Excel":
             streamlit.warning("")
         elif Save_options == "CSV":
             if streamlit.button("Save"):
-                Excel_file_name = f"api_data_{datetime.datetime.now().strftime("%YYYY%mm%dd %HH%MM%SS")}.csv"
+                Excel_file_name = f"api_data_{datetime.datetime.now().strftime("%Y%m%d %H%M%S")}.csv"
                 Excel_Object.to_csv(Excel_file_name, index=False)
                 streamlit.write(f"File saved as {Excel_file_name}")
         elif Save_options == "Excel":
             if streamlit.button("Save"):
-                Excel_file_name = f"api_data_{datetime.datetime.now().strftime("%YYYY%mm%dd %HH%MM%SS")}.xlsx"
+                Excel_file_name = f"api_data_{datetime.datetime.now().strftime("%Y%m%d %H%M%S")}.xlsx"
                 Excel_Object.to_excel(Excel_file_name, index=False)
                 streamlit.write(f"File saved as {Excel_file_name}")       
 # API
@@ -97,12 +97,12 @@ elif Options == "Add API":
                     streamlit.warning("")
                 elif Save_options == "CSV":
                     if streamlit.button("Save"):
-                        API_file_name = f"api_data_{datetime.datetime.now().strftime("%YYYY%mm%dd %HH%MM%SS")}.csv"
+                        API_file_name = f"api_data_{datetime.datetime.now().strftime("%Y%m%d %H%M%S")}.csv"
                         API_Object.to_csv(API_file_name, index=False)
                         streamlit.write(f"File saved as {API_file_name}")
                 elif Save_options == "Excel":
                     if streamlit.button("Save"):
-                        API_file_name = f"api_data_{datetime.datetime.now().strftime("%YYYY%mm%dd %HH%MM%SS")}.xlsx"
+                        API_file_name = f"api_data_{datetime.datetime.now().strftime("%Y%m%d %H%M%S")}.xlsx"
                         API_Object.to_excel(API_file_name, index=False)
                         streamlit.write(f"File saved as {API_file_name}")        
 
