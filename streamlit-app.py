@@ -29,8 +29,8 @@ users = streamlit.Page(
 data_upload = streamlit.Page(
     "ModelFlow/data-config/data-upload.py", title="Data upload", icon=":material/upload:", default=False
 )
-data_conn = streamlit.Page(
-    "ModelFlow/data-config/data-connection.py", title="Data connection", icon=":material/lan:", default=False
+manage_files = streamlit.Page(
+    "ModelFlow/data-config/manage-files.py", title="manage files", icon=":material/files:", default=False
 )
 model_history = streamlit.Page(
     "ModelFlow/model-history.py", title="Model History", icon=":material/history:", default=False
@@ -59,15 +59,15 @@ search = streamlit.Page(
 
 # list
 
-data_config_list = ("Data Configuration", [data_upload, data_conn])
+data_config_list = ("Data Configuration", [data_upload, manage_files])
 if data_config_list == "data_upload":
     data_upload,
 elif data_config_list == "data_conn":
-    data_conn
+    manage_files
 
 streamlit.navigation({
     "Account": [log_in, log_out, users],
-    "Model Flow": [data_upload, data_conn, neuro_flow, model_history],
+    "Model Flow": [data_upload, manage_files, neuro_flow, model_history],
     "Reports": [dashboard, bug_reports, system_alerts],
     "Tools": [data_migration, data_cleaning, search]
 }).run()

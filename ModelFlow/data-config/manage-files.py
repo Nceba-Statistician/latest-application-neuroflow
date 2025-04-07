@@ -22,4 +22,3 @@ else:
         streamlit.write(records.head())
     except Exception as e:
         streamlit.error(f"Failed to load file: {e}")
-        
