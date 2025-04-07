@@ -1,6 +1,7 @@
 import streamlit, os, pandas
 
-save_path = r"ModelFlow\data-config\saved-files"
+save_path = os.path.join("ModelFlow", "data-config", "saved-files")
+os.makedirs(save_path, exist_ok=True)
 streamlit.subheader("")
 saved_files = [
     files for files in os.listdir(save_path) if files.endswith(".csv") or files.endswith(".xlsx")
