@@ -33,14 +33,16 @@ elif Options == "Upload CSV":
             streamlit.warning("")
         elif Save_options == "CSV":
             if streamlit.button("Save"):
-                save_path = r"ModelFlow\data-config\saved-files"
+                save_path = os.path.join("ModelFlow", "data-config", "saved-files")
+                os.makedirs(save_path, exist_ok=True)
                 CSV_file_name = f"CSV_file_{datetime.datetime.now().strftime('%Y%m%d %H%M%S')}.csv"
                 full_path = os.path.join(save_path, CSV_file_name)
                 CSV_Object.to_csv(full_path, index=False)
                 streamlit.write("File saved at manage-files")
         elif Save_options == "Excel":
             if streamlit.button("Save"):
-                save_path = r"ModelFlow\data-config\saved-files"
+                save_path = os.path.join("ModelFlow", "data-config", "saved-files")
+                os.makedirs(save_path, exist_ok=True)
                 CSV_file_name = f"Excel_file_{datetime.datetime.now().strftime('%Y%m%d %H%M%S')}.xlsx"
                 full_path = os.path.join(save_path, CSV_file_name)
                 CSV_Object.to_excel(full_path, index=False)
