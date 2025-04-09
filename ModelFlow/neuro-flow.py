@@ -16,7 +16,7 @@ streamlit.markdown(""" <style> .footer { position: fixed; bottom: 0; left: 0; wi
 streamlit.markdown(""" <style> .emotion-cache {vertical-align: middle; overflow: hidden; color: inherit; fill: currentcolor; display: inline-flex; -webkit-box-align: center; align-items: center; font-size: 1.25rem; width: 1.25rem; height: 1.25rem; flex-shrink: 0; } </style>""",
     unsafe_allow_html=True
 )
-streamlit.markdown("""<div class="title">Neural Network Model Builder for Prediction</div>""", unsafe_allow_html=True)
+streamlit.markdown("""<div class="title">🧠 Neural Network Model Builder for Prediction</div>""", unsafe_allow_html=True)
 
 save_path = os.path.join("ModelFlow", "data-config", "saved-files")
 os.makedirs(save_path, exist_ok=True)
@@ -48,16 +48,16 @@ else:
             selected_records = records[select_columns]
             if selected_records is not None:
                 streamlit.success("Great! Once you have selected all your fields store them to the new object")
+                file_name_input = streamlit.text_input("Enter a file name (without extension):", "")
                 if streamlit.button("Store records"):
-                    save_path = os.path.join("ModelFlow", "data-config", "saved-files")
-                    os.makedirs(save_path, exist_ok=True)
-                    new_file_name = f"updated_{selected_records.Name}.csv"
-                    full_path = os.path.join(save_path, new_file_name)
-                    selected_records.to_csv(full_path, index=False)
-                    streamlit.success(f"✅ Records successfully saved! You can find **{new_file_name}** at *manage-files*.")
-                    if streamlit.checkbox("📄 Preview updated file"):
-                        streamlit.success(f"{new_file_name}")
-                        streamlit.write(selected_records.head())
+                    if not file_name_input.strip():
+                        streamlit.warning("Please enter a valid file name.")
+                    else:    
+                        save_path = os.path.join("ModelFlow", "data-config", "saved-files")
+                        os.makedirs(save_path, exist_ok=True)
+                        full_path = os.path.join(save_path, f"{file_name_input}.csv")
+                        selected_records.to_csv(full_path, index=False)
+                        streamlit.success(f"✅ {file_name_input} successfully saved! You can find file at manage-files.")
         
     except Exception as e:
         streamlit.error(f"Failed to load file: {e}")

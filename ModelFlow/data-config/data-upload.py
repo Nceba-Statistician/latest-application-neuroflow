@@ -108,19 +108,25 @@ elif Options == "Add API":
                 elif Save_options == "CSV":
                     file_name_input = streamlit.text_input("Enter a file name (without extension):", "")
                     if streamlit.button(f"Save {file_name_input}"):
-                        save_path = os.path.join("ModelFlow", "data-config", "saved-files")
-                        os.makedirs(save_path, exist_ok=True)
-                        full_path = os.path.join(save_path, f"{file_name_input}.csv")
-                        API_Object.to_csv(full_path, index=False)
-                        streamlit.success(f"{file_name_input} successful saved at manage-files")
+                        if not file_name_input.strip():
+                            streamlit.warning("Please enter a valid file name.")
+                        else:    
+                            save_path = os.path.join("ModelFlow", "data-config", "saved-files")
+                            os.makedirs(save_path, exist_ok=True)
+                            full_path = os.path.join(save_path, f"{file_name_input}.csv")
+                            API_Object.to_csv(full_path, index=False)
+                            streamlit.success(f"{file_name_input} successful saved at manage-files")
                 elif Save_options == "Excel":
                     file_name_input = streamlit.text_input("Enter a file name (without extension):", "")
                     if streamlit.button(f"Save {file_name_input}"):
-                        save_path = os.path.join("ModelFlow", "data-config", "saved-files")
-                        os.makedirs(save_path, exist_ok=True)
-                        full_path = os.path.join(save_path, f"{file_name_input}.xlsx")
-                        API_Object.to_excel(full_path, index=False)
-                        streamlit.success(f"✅ {file_name_input} successful saved at manage-files")        
+                        if not file_name_input.strip():
+                            streamlit.warning("Please enter a valid file name.")
+                        else:    
+                            save_path = os.path.join("ModelFlow", "data-config", "saved-files")
+                            os.makedirs(save_path, exist_ok=True)
+                            full_path = os.path.join(save_path, f"{file_name_input}.xlsx")
+                            API_Object.to_excel(full_path, index=False)
+                            streamlit.success(f"✅ {file_name_input} successful saved at manage-files")        
 
         except requests.exceptions.RequestException as e:
             streamlit.write("🚨 Server response failed!")
