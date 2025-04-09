@@ -45,19 +45,19 @@ else:
             "Select columns for your model", columns
         )
         if select_columns:
-            new_object = records[select_columns]
-            if new_object is not None:
+            selected_records = records[select_columns]
+            if selected_records is not None:
                 streamlit.success("Great! Once you have selected all your fields store them to the new object")
                 if streamlit.button("Store records"):
                     save_path = os.path.join("ModelFlow", "data-config", "saved-files")
                     os.makedirs(save_path, exist_ok=True)
-                    new_file_name = f"updated_fields_{new_object}.csv"
+                    new_file_name = f"updated_{selected_records.Name}.csv"
                     full_path = os.path.join(save_path, new_file_name)
-                    new_object.to_csv(full_path, index=False)
-                    streamlit.success("Records stored! Check manage-files")
+                    selected_records.to_csv(full_path, index=False)
+                    streamlit.success(f"✅ Records successfully saved! You can find **{new_file_name}** at *manage-files*.")
                     if streamlit.checkbox("📄 Preview updated file"):
                         streamlit.success(f"{new_file_name}")
-                        streamlit.write(new_object.head())
+                        streamlit.write(selected_records.head())
         
     except Exception as e:
         streamlit.error(f"Failed to load file: {e}")

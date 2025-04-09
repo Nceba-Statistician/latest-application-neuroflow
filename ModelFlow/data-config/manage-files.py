@@ -20,19 +20,19 @@ else:
     try:
         if selected_file.endswith(".csv"):
             records = pandas.read_csv(file_path)
-            if streamlit.checkbox("📄 Preview file"):
+            if streamlit.checkbox(f"📄 Preview {selected_file}"):
                 streamlit.success(f"{selected_file}")
                 streamlit.write(records.head())
-            if streamlit.button("🗑️ Delete file"):
+            if streamlit.button(f"🗑️ Delete {selected_file}"):
                 os.remove(file_path)
-                streamlit.success("Object deleted successfully!") 
+                streamlit.success(f"{selected_file} deleted successfully!") 
         elif selected_file.endswith(".xlsx"):
             records = pandas.read_excel(file_path)
-            if streamlit.checkbox("📄 Preview file"):
+            if streamlit.checkbox(f"📄 Preview {selected_file}"):
                 streamlit.success(f"{selected_file}")
                 streamlit.write(records.head())
-            if streamlit.button("🗑️ Delete file"):
+            if streamlit.button(f"🗑️ Delete {selected_file}"):
                 os.remove(file_path)
-                streamlit.success("Object deleted successfully!")  
+                streamlit.success(f"{selected_file} deleted successfully!")  
     except Exception as e:
         streamlit.error(f"Failed to load file: {e}")

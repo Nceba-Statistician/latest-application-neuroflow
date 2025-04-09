@@ -17,12 +17,13 @@ if Options == "select your option":
     streamlit.warning("Select options above if your data is ready and if not visit preprocessing")
 elif Options == "Upload CSV": # original_file_name = uploaded_CSV_file.name
     uploaded_CSV_file = streamlit.file_uploader("Upload a CSV file", type=["csv"])
+    original_file_name = uploaded_CSV_file.name
     if "show_data" not in streamlit.session_state:
         streamlit.session_state["show_data"] = False
     if uploaded_CSV_file is not None:
         CSV_Object = pandas.read_csv(uploaded_CSV_file)
-        streamlit.success("File uploaded successfully!")
-        if streamlit.checkbox("Preview object"):
+        streamlit.success(f"{original_file_name} uploaded successfully!")
+        if streamlit.checkbox(f"Preview {original_file_name}"):
             streamlit.write(CSV_Object.head())
         Save_options = streamlit.selectbox(
             "Save your file:",
@@ -32,31 +33,30 @@ elif Options == "Upload CSV": # original_file_name = uploaded_CSV_file.name
             streamlit.session_state["disable"] = True
             streamlit.warning("Select format of your choice!")
         elif Save_options == "CSV":
-            if streamlit.button("Save"):
+            if streamlit.button(f"Save {original_file_name}"):
                 save_path = os.path.join("ModelFlow", "data-config", "saved-files")
                 os.makedirs(save_path, exist_ok=True)
-                original_file_name = uploaded_CSV_file.name
                 full_path = os.path.join(save_path, original_file_name)
                 CSV_Object.to_csv(full_path, index=False)
-                streamlit.success("File saved at manage-files")
+                streamlit.success(f"✅ {original_file_name} successfully saved at manage-files")
         elif Save_options == "Excel":
-            if streamlit.button("Save"):
+            if streamlit.button(f"Save {original_file_name}"):
                 save_path = os.path.join("ModelFlow", "data-config", "saved-files")
                 os.makedirs(save_path, exist_ok=True)
-                original_file_name = uploaded_CSV_file.name
                 full_path = os.path.join(save_path, original_file_name)
                 CSV_Object.to_excel(full_path, index=False)
-                streamlit.success("File saved at manage-files")      
+                streamlit.success(f"✅ {original_file_name} successfully saved at manage-files")      
 # Excel
 
 elif Options == "Upload Excel":
     uploaded_Excel_file = streamlit.file_uploader("Upload an Excel file", type=["xlsx", "xls"])
+    original_file_name = uploaded_Excel_file.name
     if "show_data" not in streamlit.session_state:
         streamlit.session_state["show_data"] = False
     if uploaded_Excel_file is not None:
         Excel_Object = pandas.read_csv(uploaded_Excel_file)
-        streamlit.success("File uploaded successfully!")
-        if streamlit.checkbox("Preview object"):
+        streamlit.success(f"{original_file_name} uploaded successfully!")
+        if streamlit.checkbox(f"Preview {original_file_name}"):
             streamlit.write(Excel_Object.head())
         Save_options = streamlit.selectbox(
             "Save your file:",
@@ -64,23 +64,20 @@ elif Options == "Upload Excel":
             )
         if Save_options == "Select format?":
             streamlit.session_state["disable"] = True
-            streamlit.warning("")
         elif Save_options == "CSV":
-            if streamlit.button("Save"):
+            if streamlit.button(f"Save {original_file_name}"):
                 save_path = os.path.join("ModelFlow", "data-config", "saved-files")
                 os.makedirs(save_path, exist_ok=True)
-                original_file_name = uploaded_Excel_file.name
                 full_path = os.path.join(save_path, original_file_name)
                 Excel_Object.to_csv(full_path, index=False)
-                streamlit.success("File saved at manage-files")
+                streamlit.success(f"✅ {original_file_name} successfully saved at manage-files")
         elif Save_options == "Excel":
-            if streamlit.button("Save"):
+            if streamlit.button(f"Save {original_file_name}"):
                 save_path = os.path.join("ModelFlow", "data-config", "saved-files")
                 os.makedirs(save_path, exist_ok=True)
-                original_file_name = uploaded_Excel_file.name
                 full_path = os.path.join(save_path, original_file_name)
                 Excel_Object.to_excel(full_path, index=False)
-                streamlit.success("File saved at manage-files")       
+                streamlit.success(f"✅ {original_file_name} successfully saved at manage-files")       
 # API
         
 elif Options == "Add API":
@@ -93,7 +90,9 @@ elif Options == "Add API":
             if response.status_code == 200:
                 API_Object = pandas.DataFrame(response.json())
             else:
-                streamlit.error(f"🚨 Failed to fetch data: {response.status_code}")  
+                streamlit.error("🚨 Failed to fetch data")
+                if streamlit.checkbox("Preview error"):
+                    streamlit.write(f"{response.status_code}")
             if "show_data" not in streamlit.session_state:
                 streamlit.session_state["show_data"] = False
             elif API_Object is not None:
@@ -106,23 +105,22 @@ elif Options == "Add API":
                 )
                 if Save_options == "Select format?":
                     streamlit.session_state["disable"] = True
-                    streamlit.warning("")
                 elif Save_options == "CSV":
-                    if streamlit.button("Save"):
+                    file_name_input = streamlit.text_input("Enter a file name (without extension):", "")
+                    if streamlit.button(f"Save {file_name_input}"):
                         save_path = os.path.join("ModelFlow", "data-config", "saved-files")
                         os.makedirs(save_path, exist_ok=True)
-                        original_file_name = API_Object.name
-                        full_path = os.path.join(save_path, original_file_name)
+                        full_path = os.path.join(save_path, f"{file_name_input}.csv")
                         API_Object.to_csv(full_path, index=False)
-                        streamlit.success("File saved at manage-files")
+                        streamlit.success(f"{file_name_input} successful saved at manage-files")
                 elif Save_options == "Excel":
-                    if streamlit.button("Save"):
+                    file_name_input = streamlit.text_input("Enter a file name (without extension):", "")
+                    if streamlit.button(f"Save {file_name_input}"):
                         save_path = os.path.join("ModelFlow", "data-config", "saved-files")
                         os.makedirs(save_path, exist_ok=True)
-                        original_file_name = API_Object.name
-                        full_path = os.path.join(save_path, original_file_name)
+                        full_path = os.path.join(save_path, f"{file_name_input}.xlsx")
                         API_Object.to_excel(full_path, index=False)
-                        streamlit.success("File saved at manage-files")        
+                        streamlit.success(f"{file_name_input} successful saved at manage-files")        
 
         except requests.exceptions.RequestException as e:
             streamlit.write("🚨 Server response failed!")
