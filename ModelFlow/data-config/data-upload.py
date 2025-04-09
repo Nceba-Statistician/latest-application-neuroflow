@@ -21,7 +21,7 @@ elif Options == "Upload CSV":
         streamlit.session_state["show_data"] = False
     if uploaded_CSV_file is not None:
         CSV_Object = pandas.read_csv(uploaded_CSV_file)
-        streamlit.write("File uploaded successfully!")
+        streamlit.success("File uploaded successfully!")
         if streamlit.checkbox("Preview object"):
             streamlit.write(CSV_Object.head())
         Save_options = streamlit.selectbox(
@@ -55,7 +55,7 @@ elif Options == "Upload Excel":
         streamlit.session_state["show_data"] = False
     if uploaded_Excel_file is not None:
         Excel_Object = pandas.read_csv(uploaded_Excel_file)
-        streamlit.write("File uploaded successfully!")
+        streamlit.success("File uploaded successfully!")
         if streamlit.checkbox("Preview object"):
             streamlit.write(Excel_Object.head())
         Save_options = streamlit.selectbox(
@@ -97,7 +97,7 @@ elif Options == "Add API":
             if "show_data" not in streamlit.session_state:
                 streamlit.session_state["show_data"] = False
             elif API_Object is not None:
-                streamlit.write("Server response was successful!")
+                streamlit.success("Server response was successful!")
                 if streamlit.checkbox("Preview object"):
                     streamlit.write(API_Object.head())  
                 Save_options = streamlit.selectbox(
