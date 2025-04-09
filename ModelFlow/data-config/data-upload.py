@@ -30,23 +30,23 @@ elif Options == "Upload CSV":
             )
         if Save_options == "Select format?":
             streamlit.session_state["disable"] = True
-            streamlit.warning("")
+            streamlit.warning("Select format of your choice!")
         elif Save_options == "CSV":
             if streamlit.button("Save"):
                 save_path = os.path.join("ModelFlow", "data-config", "saved-files")
                 os.makedirs(save_path, exist_ok=True)
-                CSV_file_name = f"CSV_file_{datetime.datetime.now().strftime('%Y%m%d %H%M%S')}.csv"
+                CSV_file_name = f"csv_{datetime.datetime.now().strftime('%Y%m%d %H%M%S')}.csv"
                 full_path = os.path.join(save_path, CSV_file_name)
                 CSV_Object.to_csv(full_path, index=False)
-                streamlit.write("File saved at manage-files")
+                streamlit.success("File saved at manage-files")
         elif Save_options == "Excel":
             if streamlit.button("Save"):
                 save_path = os.path.join("ModelFlow", "data-config", "saved-files")
                 os.makedirs(save_path, exist_ok=True)
-                CSV_file_name = f"Excel_file_{datetime.datetime.now().strftime('%Y%m%d %H%M%S')}.xlsx"
+                CSV_file_name = f"excel_{datetime.datetime.now().strftime('%Y%m%d %H%M%S')}.xlsx"
                 full_path = os.path.join(save_path, CSV_file_name)
                 CSV_Object.to_excel(full_path, index=False)
-                streamlit.write("File saved at manage-files")      
+                streamlit.success("File saved at manage-files")      
 # Excel
 
 elif Options == "Upload Excel":
@@ -69,18 +69,18 @@ elif Options == "Upload Excel":
             if streamlit.button("Save"):
                 save_path = os.path.join("ModelFlow", "data-config", "saved-files")
                 os.makedirs(save_path, exist_ok=True)
-                Excel_file_name = f"CSV_file_{datetime.datetime.now().strftime('%Y%m%d %H%M%S')}.csv"
+                Excel_file_name = f"csv_{datetime.datetime.now().strftime('%Y%m%d %H%M%S')}.csv"
                 full_path = os.path.join(save_path, Excel_file_name)
                 Excel_Object.to_csv(full_path, index=False)
-                streamlit.write("File saved at manage-files")
+                streamlit.success("File saved at manage-files")
         elif Save_options == "Excel":
             if streamlit.button("Save"):
                 save_path = os.path.join("ModelFlow", "data-config", "saved-files")
                 os.makedirs(save_path, exist_ok=True)
-                Excel_file_name = f"Excel_file_{datetime.datetime.now().strftime('%Y%m%d %H%M%S')}.xlsx"
+                Excel_file_name = f"excel_{datetime.datetime.now().strftime('%Y%m%d %H%M%S')}.xlsx"
                 full_path = os.path.join(save_path, Excel_file_name)
                 Excel_Object.to_excel(full_path, index=False)
-                streamlit.write("File saved at manage-files")       
+                streamlit.success("File saved at manage-files")       
 # API
         
 elif Options == "Add API":
@@ -111,18 +111,18 @@ elif Options == "Add API":
                     if streamlit.button("Save"):
                         save_path = os.path.join("ModelFlow", "data-config", "saved-files")
                         os.makedirs(save_path, exist_ok=True)
-                        API_file_name = f"CSV_file_{datetime.datetime.now().strftime('%Y%m%d %H%M%S')}.csv"
+                        API_file_name = f"csv_{datetime.datetime.now().strftime('%Y%m%d %H%M%S')}.csv"
                         full_path = os.path.join(save_path, API_file_name)
                         API_Object.to_csv(full_path, index=False)
-                        streamlit.write("File saved at manage-files")
+                        streamlit.success("File saved at manage-files")
                 elif Save_options == "Excel":
                     if streamlit.button("Save"):
                         save_path = os.path.join("ModelFlow", "data-config", "saved-files")
                         os.makedirs(save_path, exist_ok=True)
-                        API_file_name = f"Excel_file_{datetime.datetime.now().strftime('%Y%m%d %H%M%S')}.xlsx"
+                        API_file_name = f"excel_{datetime.datetime.now().strftime('%Y%m%d %H%M%S')}.xlsx"
                         full_path = os.path.join(save_path, API_file_name)
                         API_Object.to_excel(full_path, index=False)
-                        streamlit.write("File saved at manage-files")        
+                        streamlit.success("File saved at manage-files")        
 
         except requests.exceptions.RequestException as e:
             streamlit.write("🚨 Server response failed!")
