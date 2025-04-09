@@ -15,12 +15,12 @@ Options = streamlit.selectbox("Upload file options: ", getdatachoices)
 if Options == "select your option":
     streamlit.session_state["disable"] = True
     streamlit.warning("Select options above if your data is ready and if not visit preprocessing")
-elif Options == "Upload CSV": # original_file_name = uploaded_CSV_file.name
+elif Options == "Upload CSV": 
     uploaded_CSV_file = streamlit.file_uploader("Upload a CSV file", type=["csv"])
-    original_file_name = uploaded_CSV_file.name
     if "show_data" not in streamlit.session_state:
         streamlit.session_state["show_data"] = False
     if uploaded_CSV_file is not None:
+        original_file_name = uploaded_CSV_file.name
         CSV_Object = pandas.read_csv(uploaded_CSV_file)
         streamlit.success(f"{original_file_name} uploaded successfully!")
         if streamlit.checkbox(f"Preview {original_file_name}"):
