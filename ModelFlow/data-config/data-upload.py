@@ -120,7 +120,7 @@ elif Options == "Add API":
                         os.makedirs(save_path, exist_ok=True)
                         full_path = os.path.join(save_path, f"{file_name_input}.xlsx")
                         API_Object.to_excel(full_path, index=False)
-                        streamlit.success(f"{file_name_input} successful saved at manage-files")        
+                        streamlit.success(f"✅ {file_name_input} successful saved at manage-files")        
 
         except requests.exceptions.RequestException as e:
             streamlit.write("🚨 Server response failed!")
