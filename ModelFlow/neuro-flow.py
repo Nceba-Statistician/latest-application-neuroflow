@@ -37,9 +37,8 @@ else:
             records = pandas.read_csv(file_path)
         elif selected_file.endswith(".xlsx"):
             records = pandas.read_excel(file_path)
-        if streamlit.checkbox(f"📄 Preview {selected_file}"):
+        if streamlit.checkbox(f"📄 Preview object"):
             streamlit.write(records.head())
-            
 
         columns = records.columns.tolist()
         select_columns = streamlit.multiselect(
@@ -56,8 +55,9 @@ else:
                     full_path = os.path.join(save_path, new_file_name)
                     new_object.to_csv(full_path, index=False)
                     streamlit.success("Records stored! Check manage-files")
-                    if streamlit.checkbox("Preview updated file"):
-                        streamlit.write(f"📄 updated file: {new_object}")
+                    if streamlit.checkbox("📄 Preview updated file"):
+                        streamlit.success(f"{new_file_name}")
+                        streamlit.write(new_object.head())
         
     except Exception as e:
         streamlit.error(f"Failed to load file: {e}")

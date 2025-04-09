@@ -11,25 +11,28 @@ selected_file = streamlit.selectbox("📂 Choose from your saved files:", file_c
 
 if selected_file == "Select a saved file":
     streamlit.session_state["disable"] = True
-    streamlit.info("Please select a file to view its contents.")
+    if file_choices is None:
+        streamlit.info("You haven’t saved any files yet.")
+    else:
+        streamlit.info("Please select a file to view its contents.")
 else:
     file_path = os.path.join(save_path, selected_file)
     try:
         if selected_file.endswith(".csv"):
             records = pandas.read_csv(file_path)
             if streamlit.checkbox("📄 Preview file"):
-                streamlit.success(f"Preview of {selected_file}")
+                streamlit.success(f"{selected_file}")
                 streamlit.write(records.head())
             if streamlit.button("🗑️ Delete file"):
                 os.remove(file_path)
-                streamlit.success("object deleted successfully!") 
+                streamlit.success("Object deleted successfully!") 
         elif selected_file.endswith(".xlsx"):
             records = pandas.read_excel(file_path)
             if streamlit.checkbox("📄 Preview file"):
-                streamlit.success(f"Preview of {selected_file}")
+                streamlit.success(f"{selected_file}")
                 streamlit.write(records.head())
             if streamlit.button("🗑️ Delete file"):
                 os.remove(file_path)
-                streamlit.success("object deleted successfully!")  
+                streamlit.success("Object deleted successfully!")  
     except Exception as e:
         streamlit.error(f"Failed to load file: {e}")
