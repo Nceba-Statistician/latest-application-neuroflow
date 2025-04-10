@@ -56,7 +56,6 @@ if uploaded_file is not None:
         log_dir = "logs/" + datetime.datetime.now().strftime("%d_%m_%Y - %H_%M_%S")
         tensorboard_callback = TensorBoard(log_dir=log_dir, histogram_freq=1)
 
-        # Train the model
         if st.button("Train Model"):
             history = model.fit(X_train, y_train, epochs=100, callbacks=[tensorboard_callback])
 
