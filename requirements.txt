@@ -8,4 +8,5 @@ keras
 scikit-learn
 matplotlib
 openpyxl
+seaborn
 
