@@ -1,11 +1,14 @@
-import streamlit, tensorflow, os, pandas, numpy
+import streamlit, tensorflow, os, pandas, numpy, seaborn 
 from tensorflow.python.keras.models import Sequential
 from tensorflow.python.keras.layers import Dense, Dropout, Input
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-import matplotlib.pyplot as plt
+from matplotlib import pyplot
 from tensorflow.python.keras.callbacks import TensorBoard
+from scipy import stats
+from statsmodels import api
 import datetime
+
 
 streamlit.markdown("""<style> .font {font-size: 5px; font-weight: bold; background-color: green} </style> """,
     unsafe_allow_html=True
@@ -22,7 +25,8 @@ streamlit.markdown(""" <style> .emotion-cache {vertical-align: middle; overflow:
 streamlit.markdown("""<div class="titlemodel">Neural Network Model Builder for Prediction</div>""", unsafe_allow_html=True)
 
 streamlit.subheader("")
-Action_options = ["Select an action", "Select model fields", "Transform field values", "Update field data types"]
+Action_options = ["Select an action", "Select model fields", "Transform field values", "Update field data types",
+                  "Determine Statistical Distribution"]
 selected_action_option = streamlit.selectbox("Choose an action:", Action_options, key="selectbox_action")
 
 if selected_action_option == "Select an action":
@@ -128,7 +132,7 @@ elif selected_action_option == "Transform field values":
                         if streamlit.checkbox(f"Preview updated {selected_file}", key=f"preview_{selected_file}_transform_object_after"):
                             streamlit.write(records.head())
         except Exception as e:
-            streamlit.error(f"Field transformation failed: {e}") 
+            streamlit.error(f"Failed to load file: {e}") 
 
 elif selected_action_option == "Update field data types":
     save_path = os.path.join("ModelFlow", "data-config", "saved-files")
@@ -237,5 +241,98 @@ elif selected_action_option == "Update field data types":
                     streamlit.write(records.dtypes.reset_index().rename(columns={"index": "Fields", 0: "Data Type"}))                        
 
         except Exception as e:
-            streamlit.error(f"Field transformation failed: {e}")  
+            streamlit.error(f"Failed to load file: {e}") 
+
+elif selected_action_option == "Determine Statistical Distribution":
+    save_path = os.path.join("ModelFlow", "data-config", "saved-files")
+    os.makedirs(save_path, exist_ok=True)
+    saved_files = [
+        files for files in os.listdir(save_path) if files.endswith(".csv") or files.endswith(".xlsx")
+        ]
+    file_choices = ["Select file to transform"] + saved_files
+    selected_file = streamlit.selectbox("📂 Choose from your saved files:", file_choices, key="selectbox_dist")
+    if selected_file == "Select file to transform":
+        streamlit.session_state["disable"] = True
+        streamlit.info("Please select file to continue.")
+    else:
+        try:
+            file_path = os.path.join(save_path, selected_file)
+            if selected_file.endswith(".csv"):
+                records = pandas.read_csv(file_path)
+            elif selected_file.endswith(".xlsx"):
+                records = pandas.read_excel(file_path)
+            if streamlit.checkbox(f"📄 Preview {selected_file}", key=f"preview_{selected_file}_transform__object_dist"):
+                streamlit.write(records.head())
+             
+            records_columns = records.columns.tolist()
+            select_columns_dist = streamlit.multiselect(
+                "Choose fields to detect distribution", records_columns
+                )
+            if select_columns_dist:
+                column_to_dist = streamlit.selectbox("Choose a column to continue", select_columns_dist, key="selectbox_dist_column")
+                if column_to_dist:
+                    if streamlit.checkbox("Preview distribution type"):
+                        records_col = records[column_to_dist]
+                        streamlit.write(f"Analyzing distribution of '{records_col.name}':")
+                        skewness = stats.skew(records_col)
+                        if skewness == 0:
+                            streamlit.info(f"Skewness: {skewness:.3f} → perfectly symmetric")
+                        elif -0.5 <= skewness <= 0.5:
+                            streamlit.info(f"Skewness: {skewness:.3f} → approximately symmetric")  
+                        elif skewness < 0:  
+                            streamlit.info(f"Skewness: {skewness:.3f} → longer tail on the left") 
+                        elif skewness > 0:
+                            streamlit.info(f"Skewness: {skewness:.3f} → longer tail on the right")    
+
+                        Kurtosis = stats.skew(records_col)
+                        if Kurtosis == 0:
+                            streamlit.info(f"Kurtosis: {Kurtosis:.3f} → normal distributed (mesokurtic)")
+                        elif -0.5 <= Kurtosis <= 0.5:
+                            streamlit.info(f"Kurtosis: {Kurtosis:.3f} → approximately normal")
+                        elif -3 < Kurtosis <= -1:
+                            streamlit.info(f"Kurtosis: {Kurtosis:.3f} → light tailed, flatter peak (platykurtic) → fewer outliers")     
+                        elif 3 > Kurtosis >= 1:  
+                            streamlit.info(f"Kurtosis: {Kurtosis:.3f} → heavy tailed, sharp peak (leptokurtic) → more outliers")
+                        elif Kurtosis <= -3:
+                            streamlit.info(f"Kurtosis: {Kurtosis:.3f} → Very flat, light tail (platykurtic) — fewer extreme outliers")     
+                        elif Kurtosis >= 3:
+                            streamlit.info(f"Kurtosis: {Kurtosis:.3f} → Very peaked, fat tail (leptokurtic) → more extreme outliers")
+
+                        streamlit.write("Statistical tests:")
+                        shapiro_stat, shapiro_p = stats.shapiro(records_col)
+                        dagostino_stat, dagostino_p = stats.normaltest(records_col)
+                        anderson_result = stats.anderson(records_col, dist='norm')
+                        streamlit.info(f"Shapiro-Wilk → Statistic: {shapiro_stat:.4f} and p-value: {shapiro_p:.4f}")
+                        streamlit.info(f"D'Agostino K-squared → Statistic: {dagostino_stat:.4f} and p-value: {dagostino_p:.4f}")
+                        streamlit.info(f"Anderson-Darling Statistic: {anderson_result.statistic:.4f}")
+
+                        # streamlit.info(f"Shapiro-Wilk | p-value: {stats.shapiro(records_col):.4f} | {stats.shapiro(records_col).pvalue:.4f}")
+                        # streamlit.info(f"D'Agostino K-squared | p-value: {stats.normaltest(records_col):.4f} | {stats.normaltest(records_col).pvalue:.4f}")
+                        # streamlit.info(f"Anderson-Darling statistic: {stats.anderson(records_col, dist='norm'):.4f}")
+                        streamlit.write("")
+                        
+                        if stats.shapiro(records_col).pvalue < 0.05 or stats.normaltest(records_col) < 0.05:
+                            streamlit.success(f"✅ Its likey that data is not normally distributed")
+                        else:
+                            streamlit.success(f"✅ Its likey that data is normally distributed")
+                        streamlit.write("")    
+
+                        pyplot.figure(figsize=(5, 2))
+                        # pyplot.subplot(1, 2, 1)
+                        seaborn.histplot(records_col, kde=True, bins=30)
+                        pyplot.title(f"Histogram with KDE - {records_col.name}") # Kernel Density Estimation will make our PDF smooth and continuous estimate 
+                        pyplot.tight_layout()
+                        streamlit.pyplot(pyplot) 
+                        
+                        pyplot.figure(figsize=(5, 2))
+                        # pyplot.subplot(1, 2, 2)
+                        api.qqplot(records_col, line="s")
+                        pyplot.title(f"Q-Q Plot - {records_col.name}")
+                        pyplot.tight_layout()
+                        streamlit.pyplot(pyplot)                            
+
+        except Exception as e:
+            streamlit.error(f"Failed to load file: {e}")          
+
+
 # To add data value range an example 0 - 10 group it as "0 to 10"                   
