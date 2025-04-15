@@ -308,7 +308,10 @@ elif selected_action_option == "Determine Statistical Distribution":
                         anderson_result = stats.anderson(records_col, dist='norm')
                         streamlit.info(f"Shapiro-Wilk → Statistic: {shapiro_stat:.4f} and p-value: {shapiro_p:.4f}")
                         streamlit.info(f"D'Agostino K-squared → Statistic: {dagostino_stat:.4f} and p-value: {dagostino_p:.4f}")
-                        streamlit.info(f"Anderson-Darling Statistic: {anderson_result.statistic:.4f}")
+                        streamlit.write("Anderson-Darling Test:")
+                        streamlit.info(f"Test Statistic: {anderson_result.statistic:.4f}")
+                        streamlit.info("Critical Values:", anderson_result.critical_values)
+                        streamlit.info("Significance Levels:", anderson_result.significance_level)
 
                         # streamlit.info(f"Shapiro-Wilk | p-value: {stats.shapiro(records_col):.4f} | {stats.shapiro(records_col).pvalue:.4f}")
                         # streamlit.info(f"D'Agostino K-squared | p-value: {stats.normaltest(records_col):.4f} | {stats.normaltest(records_col).pvalue:.4f}")
@@ -316,14 +319,25 @@ elif selected_action_option == "Determine Statistical Distribution":
                         streamlit.write("The chosen significance level (α) is set to 0.05:") # 
                         streamlit.write("null hypothesis: data follow a normal distribution")
                         streamlit.write("alternative hypothesis: data do not follow a normal distribution")
-                        
-                        if stats.shapiro(records_col).pvalue <= 0.05 or stats.normaltest(records_col) <= 0.05:
-                            streamlit.success(f"✅ Shapiro-Wilk and Anderson-Darling statistical tests suggests that your {records_col.name} do not follow a normal distribution")
+                        alpha = 0.05
+                        if stats.shapiro(records_col).pvalue <= alpha or stats.normaltest(records_col) <= alpha:
+                            streamlit.success(f"✅ Shapiro-Wilk and D'Agostino K-squared statistical tests suggests your {records_col.name} data is likely not normally distributed (reject the null hypothesis)")
                         else:
-                            streamlit.success(f"✅ Shapiro-Wilk and Anderson-Darling statistical tests suggests that your {records_col.name} follow a normal distribution")
+                            streamlit.success(f"✅ Shapiro-Wilk and D'Agostino K-squared statistical tests suggests your {records_col.name} data is likely normally distributed (fail to reject the null hypothesis)")
                   
-                        streamlit.info("If Shapiro-Wilk or Anderson-Darling <= α, then reject your null hypothesis!")    
-
+                        streamlit.info("If Shapiro-Wilk or D'Agostino K-squared is less than or equal to alpha (α), then reject your null hypothesis!")
+                        
+                        streamlit.write("Interpretation by comparing the test statistic to critical values")   
+                        alpha_levels = [15, 10, 5, 2.5, 1] # Significance levels in percent
+                        for i in range(len(anderson_result.critical_values)):
+                             if anderson_result.statistic > anderson_result.critical_values[i]:
+                                 streamlit.info(f"At the {alpha_levels[i]}% significance level, the test statistic ({anderson_result.statistic:.3f}) is greater than the critical value ({result.critical_values[i]:.3f}).")
+                                 streamlit.info("Suggesting the data is likely not normally distributed (reject the null hypothesis).")
+                                 break
+                        else:
+                            streamlit.info(f"The test statistic ({anderson_result.statistic:.3f}) is less than all critical values.")
+                            streamlit.info("Suggesting the data is likely normally distributed (fail to reject the null hypothesis at common alpha levels).")
+                        streamlit.write("")
                         pyplot.figure(figsize=(5, 2))
                         # pyplot.subplot(1, 2, 1)
                         seaborn.histplot(records_col, kde=True, bins=30)
@@ -340,6 +354,10 @@ elif selected_action_option == "Determine Statistical Distribution":
 
         except Exception as e:
             streamlit.error(f"Failed to load file: {e}")          
+
+# 
+
+
 
 
 # To add data value range an example 0 - 10 group it as "0 to 10"                   
