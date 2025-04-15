@@ -322,7 +322,7 @@ elif selected_action_option == "Determine Statistical Distribution":
                         else:
                             streamlit.success(f"✅ Shapiro-Wilk and Anderson-Darling statistical tests suggests that your {records_col.name} follow a normal distribution")
                   
-                        streamlit.info("More detailed: If Shapiro-Wilk or Anderson-Darling <= α, then reject your null hypothesis!")    
+                        streamlit.info("If Shapiro-Wilk or Anderson-Darling <= α, then reject your null hypothesis!")    
 
                         pyplot.figure(figsize=(5, 2))
                         # pyplot.subplot(1, 2, 1)
