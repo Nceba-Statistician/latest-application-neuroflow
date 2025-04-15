@@ -310,8 +310,8 @@ elif selected_action_option == "Determine Statistical Distribution":
                         streamlit.info(f"D'Agostino K-squared → Statistic: {dagostino_stat:.4f} and p-value: {dagostino_p:.4f}")
                         streamlit.write("Anderson-Darling Test:")
                         streamlit.info(f"Test Statistic: {anderson_result.statistic:.4f}")
-                        streamlit.info("Critical Values:", anderson_result.critical_values)
-                        streamlit.info("Significance Levels:", anderson_result.significance_level)
+                        streamlit.info(f"Critical Values: {anderson_result.critical_values}")
+                        streamlit.info(f"Significance Levels: {anderson_result.significance_level}")
 
                         # streamlit.info(f"Shapiro-Wilk | p-value: {stats.shapiro(records_col):.4f} | {stats.shapiro(records_col).pvalue:.4f}")
                         # streamlit.info(f"D'Agostino K-squared | p-value: {stats.normaltest(records_col):.4f} | {stats.normaltest(records_col).pvalue:.4f}")
@@ -329,9 +329,10 @@ elif selected_action_option == "Determine Statistical Distribution":
                         
                         streamlit.write("Interpretation by comparing the test statistic to critical values")   
                         alpha_levels = [15, 10, 5, 2.5, 1] # Significance levels in percent
+                        streamlit.write(f"Significance levels in percent: {alpha_levels}")
                         for i in range(len(anderson_result.critical_values)):
                              if anderson_result.statistic > anderson_result.critical_values[i]:
-                                 streamlit.info(f"At the {alpha_levels[i]}% significance level, the test statistic ({anderson_result.statistic:.3f}) is greater than the critical value ({result.critical_values[i]:.3f}).")
+                                 streamlit.info(f"At the {alpha_levels[i]}% significance level, the test statistic ({anderson_result.statistic:.3f}) is greater than the critical value ({anderson_result.critical_values[i]:.3f}).")
                                  streamlit.info("Suggesting the data is likely not normally distributed (reject the null hypothesis).")
                                  break
                         else:
