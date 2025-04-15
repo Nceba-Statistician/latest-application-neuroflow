@@ -275,26 +275,30 @@ elif selected_action_option == "Determine Statistical Distribution":
                         records_col = records[column_to_dist]
                         streamlit.write(f"Analyzing distribution of '{records_col.name}':")
                         skewness = stats.skew(records_col)
-                        if skewness == 0:
+                        if skewness == 0.0:
                             streamlit.info(f"Skewness: {skewness:.3f} → perfectly symmetric")
                         elif -0.5 <= skewness <= 0.5:
                             streamlit.info(f"Skewness: {skewness:.3f} → approximately symmetric")  
-                        elif skewness < 0:  
-                            streamlit.info(f"Skewness: {skewness:.3f} → longer tail on the left") 
-                        elif skewness > 0:
-                            streamlit.info(f"Skewness: {skewness:.3f} → longer tail on the right")    
+                        elif -1.0 <= skewness < -0.5:  
+                            streamlit.info(f"Skewness: {skewness:.3f} → longer tail on the left")
+                        elif skewness < -1.0:
+                            streamlit.info(f"Skewness: {skewness:.3f} → extreme longer tail on the left")
+                        elif 0.5 < skewness <= 1.0:
+                            streamlit.info(f"Skewness: {skewness:.3f} → longer tail on the right")  
+                        elif skewness > 1.0:
+                            streamlit.info(f"Skewness: {skewness:.3f} → extreme longer tail on the right")    
 
                         Kurtosis = stats.skew(records_col)
-                        if Kurtosis == 0:
+                        if Kurtosis == 0.0:
                             streamlit.info(f"Kurtosis: {Kurtosis:.3f} → normal distributed (mesokurtic)")
                         elif -0.5 <= Kurtosis <= 0.5:
                             streamlit.info(f"Kurtosis: {Kurtosis:.3f} → approximately normal")
-                        elif -3 < Kurtosis <= -1:
-                            streamlit.info(f"Kurtosis: {Kurtosis:.3f} → light tailed, flatter peak (platykurtic) → fewer outliers")     
-                        elif 3 > Kurtosis >= 1:  
-                            streamlit.info(f"Kurtosis: {Kurtosis:.3f} → heavy tailed, sharp peak (leptokurtic) → more outliers")
-                        elif Kurtosis <= -3:
-                            streamlit.info(f"Kurtosis: {Kurtosis:.3f} → Very flat, light tail (platykurtic) — fewer extreme outliers")     
+                        elif -3.0 < Kurtosis < -0.5:
+                            streamlit.info(f"Kurtosis: {Kurtosis:.3f} → light tailed, flatter peak (platykurtic) → fewer outliers") 
+                        elif Kurtosis <= -3.0:
+                            streamlit.info(f"Kurtosis: {Kurtosis:.3f} → Very flat, light tail (platykurtic) — fewer extreme outliers")                                  
+                        elif 0.5 < Kurtosis < 3.0:  
+                            streamlit.info(f"Kurtosis: {Kurtosis:.3f} → heavy tailed, sharp peak (leptokurtic) → more outliers")   
                         elif Kurtosis >= 3:
                             streamlit.info(f"Kurtosis: {Kurtosis:.3f} → Very peaked, fat tail (leptokurtic) → more extreme outliers")
 
@@ -309,13 +313,16 @@ elif selected_action_option == "Determine Statistical Distribution":
                         # streamlit.info(f"Shapiro-Wilk | p-value: {stats.shapiro(records_col):.4f} | {stats.shapiro(records_col).pvalue:.4f}")
                         # streamlit.info(f"D'Agostino K-squared | p-value: {stats.normaltest(records_col):.4f} | {stats.normaltest(records_col).pvalue:.4f}")
                         # streamlit.info(f"Anderson-Darling statistic: {stats.anderson(records_col, dist='norm'):.4f}")
-                        streamlit.write("")
+                        streamlit.write("The chosen significance level (α) is set to 0.05:") # 
+                        streamlit.write("null hypothesis: data follow a normal distribution")
+                        streamlit.write("alternative hypothesis: data do not follow a normal distribution")
                         
-                        if stats.shapiro(records_col).pvalue < 0.05 or stats.normaltest(records_col) < 0.05:
-                            streamlit.success(f"✅ Its likey that data is not normally distributed")
+                        if stats.shapiro(records_col).pvalue <= 0.05 or stats.normaltest(records_col) <= 0.05:
+                            streamlit.success(f"✅ Shapiro-Wilk and Anderson-Darling statistical tests suggests that your {records_col.name} do not follow a normal distribution")
                         else:
-                            streamlit.success(f"✅ Its likey that data is normally distributed")
-                        streamlit.write("")    
+                            streamlit.success(f"✅ Shapiro-Wilk and Anderson-Darling statistical tests suggests that your {records_col.name} follow a normal distribution")
+                  
+                        streamlit.info("More detailed: If Shapiro-Wilk or Anderson-Darling <= α, then reject your null hypothesis!")    
 
                         pyplot.figure(figsize=(5, 2))
                         # pyplot.subplot(1, 2, 1)
