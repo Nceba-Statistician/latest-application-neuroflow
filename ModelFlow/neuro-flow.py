@@ -337,7 +337,7 @@ elif selected_action_option == "Determine Statistical Distribution":
                                  break
                         else:
                             streamlit.info(f"The test statistic ({anderson_result.statistic:.3f}) is less than all critical values.")
-                            streamlit.info("Suggesting the data is likely normally distributed (fail to reject the null hypothesis at common alpha levels).")
+                            streamlit.info(f"Suggesting the {records_col.name} data is likely normally distributed (fail to reject the null hypothesis at common alpha levels).")
                         streamlit.write("")
                         pyplot.figure(figsize=(5, 2))
                         # pyplot.subplot(1, 2, 1)
