@@ -36,15 +36,15 @@ elif Options == "Upload CSV":
             if streamlit.button(f"Save {original_file_name}"):
                 save_path = os.path.join("ModelFlow", "data-config", "saved-files")
                 os.makedirs(save_path, exist_ok=True)
-                full_path = os.path.join(save_path, original_file_name)
+                full_path = os.path.join(save_path, os.path.splitext(original_file_name)[0] + ".csv")
                 CSV_Object.to_csv(full_path, index=False)
                 streamlit.success(f"✅ {original_file_name} successfully saved at manage-files")
         elif Save_options == "Excel":
             if streamlit.button(f"Save {original_file_name}"):
                 save_path = os.path.join("ModelFlow", "data-config", "saved-files")
                 os.makedirs(save_path, exist_ok=True)
-                full_path = os.path.join(save_path, original_file_name)
-                CSV_Object.to_excel(full_path, index=False)
+                full_path = os.path.join(save_path, os.path.splitext(original_file_name)[0] + ".xlsx")
+                CSV_Object.to_excel(full_path, index=False, engine='openpyxl')
                 streamlit.success(f"✅ {original_file_name} successfully saved at manage-files")      
 # Excel
 
@@ -68,15 +68,15 @@ elif Options == "Upload Excel":
             if streamlit.button(f"Save {original_file_name}"):
                 save_path = os.path.join("ModelFlow", "data-config", "saved-files")
                 os.makedirs(save_path, exist_ok=True)
-                full_path = os.path.join(save_path, original_file_name)
+                full_path = os.path.join(save_path, os.path.splitext(original_file_name)[0] + ".csv")
                 Excel_Object.to_csv(full_path, index=False)
                 streamlit.success(f"✅ {original_file_name} successfully saved at manage-files")
         elif Save_options == "Excel":
             if streamlit.button(f"Save {original_file_name}"):
                 save_path = os.path.join("ModelFlow", "data-config", "saved-files")
                 os.makedirs(save_path, exist_ok=True)
-                full_path = os.path.join(save_path, original_file_name)
-                Excel_Object.to_excel(full_path, index=False)
+                full_path = os.path.join(save_path, os.path.splitext(original_file_name)[0] + ".xlsx")
+                Excel_Object.to_excel(full_path, index=False, engine='openpyxl')
                 streamlit.success(f"✅ {original_file_name} successfully saved at manage-files")       
 # API
         
@@ -125,7 +125,7 @@ elif Options == "Add API":
                             save_path = os.path.join("ModelFlow", "data-config", "saved-files")
                             os.makedirs(save_path, exist_ok=True)
                             full_path = os.path.join(save_path, f"{file_name_input}.xlsx")
-                            API_Object.to_excel(full_path, index=False)
+                            API_Object.to_excel(full_path, index=False, engine='openpyxl')
                             streamlit.success(f"✅ {file_name_input} successful saved at manage-files")        
 
         except requests.exceptions.RequestException as e:

@@ -100,9 +100,19 @@ elif selected_action_option == "Select model fields":
                     else:    
                         save_path = os.path.join("ModelFlow", "data-config", "saved-files")
                         os.makedirs(save_path, exist_ok=True)
-                        full_path = os.path.join(save_path, f"{file_name_input}.csv")
-                        selected_records.to_csv(full_path, index=False)
-                        streamlit.success(f"✅ {file_name_input} successfully saved! You can find file at manage-files.")
+                        if selected_file.endswith(".csv"):
+                            full_path = os.path.join(save_path, os.path.splitext(file_name_input)[0] + ".csv")
+                            selected_records.to_csv(full_path, index=False)
+                            streamlit.success(f"✅ {file_name_input} successfully saved! You can find file at manage-files.")
+                        elif selected_file.endswith(".xlsx"):
+                            full_path = os.path.join(save_path, os.path.splitext(file_name_input)[0] + ".xlsx")
+                            selected_records.to_excel(full_path, index=False, engine='openpyxl')
+                            streamlit.success(f"✅ {file_name_input} successfully saved! You can find file at manage-files.")
+                        # full_path = os.path.join(save_path, f"{file_name_input}.csv")
+                        # selected_records.to_csv(full_path, index=False)
+                        
+                 
+
         except Exception as e:
                 streamlit.error(f"Failed to load file: {e}")
 
@@ -155,9 +165,14 @@ elif selected_action_option == "Transform field values":
                             records[f"{column_to_map}"] = records[f"{column_to_map}"].replace(streamlit.session_state["value_map"])
                             save_path = os.path.join("ModelFlow", "data-config", "saved-files")
                             os.makedirs(save_path, exist_ok=True)
-                            full_path = os.path.join(save_path, selected_file)
-                            records.to_csv(full_path, index=False)
-                            streamlit.success(f"✅ {selected_file} updated successfully!")
+                            if selected_file.endswith(".csv"):
+                                full_path = os.path.join(save_path, os.path.splitext(selected_file)[0] + ".csv")
+                                records.to_csv(full_path, index=False)
+                                streamlit.success(f"✅ {column_to_map} updated successfully!")
+                            elif selected_file.endswith(".xlsx"):
+                                full_path = os.path.join(save_path, os.path.splitext(selected_file)[0] + ".xlsx")
+                                records.to_excel(full_path, index=False, engine='openpyxl') 
+                                streamlit.success(f"✅ {column_to_map} updated successfully!") 
                         if streamlit.checkbox(f"Preview updated {selected_file}", key=f"preview_{selected_file}_transform_object_after"):
                             streamlit.write(records.head())
         except Exception as e:
@@ -205,45 +220,70 @@ elif selected_action_option == "Update field data types":
                                      records[f"{column_to_update}"] = pandas.to_numeric(records[f"{column_to_update}"], errors="raise").astype("int")
                                      save_path = os.path.join("ModelFlow", "data-config", "saved-files")
                                      os.makedirs(save_path, exist_ok=True)
-                                     full_path = os.path.join(save_path, selected_file)
-                                     records.to_csv(full_path, index=False)         
-                                     streamlit.success(f"✅ {column_to_update} updated successfully!") 
+                                     if selected_file.endswith(".csv"):
+                                         full_path = os.path.join(save_path, os.path.splitext(selected_file)[0] + ".csv")
+                                         records.to_csv(full_path, index=False)
+                                         streamlit.success(f"✅ {column_to_update} updated successfully!")
+                                     elif selected_file.endswith(".xlsx"):
+                                         full_path = os.path.join(save_path, os.path.splitext(selected_file)[0] + ".xlsx")
+                                         records.to_excel(full_path, index=False, engine='openpyxl')         
+                                         streamlit.success(f"✅ {column_to_update} updated successfully!") 
                         elif selected_data_type == "float":
-                                precision = streamlit.slider("Select decimal precision", min_value=0, max_value=10, value=2)
+                                precision = streamlit.number_input("Number of decimal places to round to:", min_value=0, step=1, value=2)
                                 streamlit.write(f"Precision selected: {precision}")
                                 if precision:
                                     if streamlit.button(f"Apply data type to {column_to_update}"):
-                                        records[f"{column_to_update}"] = pandas.to_numeric(records[f"{column_to_update}"], errors="raise").astype("float").round(precision)
+                                        records[f"{column_to_update}"] = records[f"{column_to_update}"].astype("float").round(precision)
                                         save_path = os.path.join("ModelFlow", "data-config", "saved-files")
                                         os.makedirs(save_path, exist_ok=True)
-                                        full_path = os.path.join(save_path, selected_file)
-                                        records.to_csv(full_path, index=False)         
-                                        streamlit.success(f"✅ {column_to_update} updated successfully!") 
+                                        if selected_file.endswith(".csv"):
+                                            full_path = os.path.join(save_path, os.path.splitext(selected_file)[0] + ".csv")
+                                            records.to_csv(full_path, index=False)
+                                            streamlit.success(f"✅ {column_to_update} updated successfully!")
+                                        elif selected_file.endswith(".xlsx"):
+                                            full_path = os.path.join(save_path, os.path.splitext(selected_file)[0] + ".xlsx")
+                                            records.to_excel(full_path, index=False, engine='openpyxl')         
+                                            streamlit.success(f"✅ {column_to_update} updated successfully!") 
                         elif selected_data_type == "str":
                                 if streamlit.button(f"Apply data type to {column_to_update}"):
-                                     records[f"{column_to_update}"] = pandas.to_numeric(records[f"{column_to_update}"], errors="raise").astype("str")
+                                     records[f"{column_to_update}"] = records[f"{column_to_update}"].astype("str")
                                      save_path = os.path.join("ModelFlow", "data-config", "saved-files")
                                      os.makedirs(save_path, exist_ok=True)
-                                     full_path = os.path.join(save_path, selected_file)
-                                     records.to_csv(full_path, index=False)         
-                                     streamlit.success(f"✅ {column_to_update} updated successfully!") 
+                                     if selected_file.endswith(".csv"):
+                                         full_path = os.path.join(save_path, os.path.splitext(selected_file)[0] + ".csv")
+                                         records.to_csv(full_path, index=False)
+                                         streamlit.success(f"✅ {column_to_update} updated successfully!")
+                                     elif selected_file.endswith(".xlsx"):
+                                         full_path = os.path.join(save_path, os.path.splitext(selected_file)[0] + ".xlsx")
+                                         records.to_excel(full_path, index=False, engine='openpyxl')         
+                                         streamlit.success(f"✅ {column_to_update} updated successfully!") 
                         elif selected_data_type == "bool":
                                 if streamlit.button(f"Apply data type to {column_to_update}"):
                                      records[f"{column_to_update}"] = pandas.to_numeric(records[f"{column_to_update}"], errors="raise").astype("bool")
                                      save_path = os.path.join("ModelFlow", "data-config", "saved-files")
                                      os.makedirs(save_path, exist_ok=True)
-                                     full_path = os.path.join(save_path, selected_file)
-                                     records.to_csv(full_path, index=False)         
-                                     streamlit.success(f"✅ {column_to_update} updated successfully!") 
+                                     if selected_file.endswith(".csv"):
+                                         full_path = os.path.join(save_path, os.path.splitext(selected_file)[0] + ".csv")
+                                         records.to_csv(full_path, index=False)
+                                         streamlit.success(f"✅ {column_to_update} updated successfully!")
+                                     elif selected_file.endswith(".xlsx"):
+                                         full_path = os.path.join(save_path, os.path.splitext(selected_file)[0] + ".xlsx")
+                                         records.to_excel(full_path, index=False, engine='openpyxl')         
+                                         streamlit.success(f"✅ {column_to_update} updated successfully!") 
                     # '2024-12-31 14:45'
                         elif selected_data_type == "Datetime":
                             if streamlit.button(f"Apply data type to {column_to_update}"):
                                 records[f"{column_to_update}"] = pandas.to_datetime(records[f"{column_to_update}"], errors="raise")
                                 save_path = os.path.join("ModelFlow", "data-config", "saved-files")
                                 os.makedirs(save_path, exist_ok=True)
-                                full_path = os.path.join(save_path, selected_file)
-                                records.to_csv(full_path, index=False)         
-                                streamlit.success(f"✅ {column_to_update} updated successfully!") 
+                                if selected_file.endswith(".csv"):
+                                    full_path = os.path.join(save_path, os.path.splitext(selected_file)[0] + ".csv")
+                                    records.to_csv(full_path, index=False)
+                                    streamlit.success(f"✅ {column_to_update} updated successfully!")
+                                elif selected_file.endswith(".xlsx"):
+                                    full_path = os.path.join(save_path, os.path.splitext(selected_file)[0] + ".xlsx")
+                                    records.to_excel(full_path, index=False, engine='openpyxl')         
+                                    streamlit.success(f"✅ {column_to_update} updated successfully!") 
                         elif selected_data_type == "Time":
                             if streamlit.button(f"Apply data type to {column_to_update}"):
                                 time_input = streamlit.text_input("Enter time in HH:MM:SS format", "")
@@ -253,17 +293,27 @@ elif selected_action_option == "Update field data types":
                                     records[f"{column_to_update}"] = pandas.to_datetime([time_input], format='%H:%M:%S').time[0]
                                     save_path = os.path.join("ModelFlow", "data-config", "saved-files")
                                     os.makedirs(save_path, exist_ok=True)
-                                    full_path = os.path.join(save_path, selected_file)
-                                    records.to_csv(full_path, index=False)         
-                                    streamlit.success(f"✅ {column_to_update} updated successfully!") 
+                                    if selected_file.endswith(".csv"):
+                                        full_path = os.path.join(save_path, os.path.splitext(selected_file)[0] + ".csv")
+                                        records.to_csv(full_path, index=False)
+                                        streamlit.success(f"✅ {column_to_update} updated successfully!")
+                                    elif selected_file.endswith(".xlsx"):
+                                        full_path = os.path.join(save_path, os.path.splitext(selected_file)[0] + ".xlsx")
+                                        records.to_excel(full_path, index=False, engine='openpyxl') 
+                                        streamlit.success(f"✅ {column_to_update} updated successfully!")
                         elif selected_data_type == "Date":
                                 if streamlit.button(f"Apply data type to {column_to_update}"):
                                     records[f"{column_to_update}"] = pandas.to_datetime(records[f"{column_to_update}"], errors="raise")
                                     save_path = os.path.join("ModelFlow", "data-config", "saved-files")
                                     os.makedirs(save_path, exist_ok=True)
-                                    full_path = os.path.join(save_path, selected_file)
-                                    records.to_csv(full_path, index=False)         
-                                    streamlit.success(f"✅ {column_to_update} updated successfully!") 
+                                    if selected_file.endswith(".csv"):
+                                        full_path = os.path.join(save_path, os.path.splitext(selected_file)[0] + ".csv")
+                                        records.to_csv(full_path, index=False)
+                                        streamlit.success(f"✅ {column_to_update} updated successfully!")
+                                    elif selected_file.endswith(".xlsx"):
+                                        full_path = os.path.join(save_path, os.path.splitext(selected_file)[0] + ".xlsx")
+                                        records.to_excel(full_path, index=False, engine='openpyxl') 
+                                        streamlit.success(f"✅ {column_to_update} updated successfully!")
                     except Exception as e:
                             streamlit.error(f"⚠️ Conversion failed: {e}")
                 if streamlit.checkbox(f"Preview {selected_file} data types", key=f"preview_{selected_file}_dtypes_after"):
@@ -593,7 +643,7 @@ elif selected_action_option == "Imputation":
                 records = pandas.read_excel(file_path)
             if streamlit.checkbox(f"📄 Preview {selected_file}", key=f"preview_{selected_file}_impute_object"):
                 streamlit.write(records.head())
-            if streamlit.checkbox(f"Preview your {selected_file}", key="selectbox_before_impute"):
+            if streamlit.checkbox(f"Check your {selected_file} nulls", key="selectbox_before_impute"):
                 columns_with_missing = records.columns[records.isnull().any()].tolist()
                 missing_counts_greater_than_zero = records.isnull().sum()[records.isnull().sum() > 0]
                 buffer = StringIO()
@@ -643,8 +693,12 @@ elif selected_action_option == "Imputation":
                                 records[column_to_dist] = imputed_field
                                 save_path = os.path.join("ModelFlow", "data-config", "saved-files")
                                 os.makedirs(save_path, exist_ok=True)
-                                full_path = os.path.join(save_path, selected_file)
-                                records.to_csv(full_path, index=False)         
+                                if selected_file.endswith(".csv"):
+                                    full_path = os.path.join(save_path, os.path.splitext(selected_file)[0] + ".csv")
+                                    records.to_csv(full_path, index=False)
+                                elif selected_file.endswith(".xlsx"):
+                                    full_path = os.path.join(save_path, os.path.splitext(selected_file)[0] + ".xlsx")
+                                    records.to_excel(full_path, index=False, engine='openpyxl')     
                                 streamlit.success(f"✅ You have successfully imputed and saved your {selected_file}!")
                             except Exception as e:
                                 streamlit.error(f"An error occurred during imputation: {e}")  
@@ -652,30 +706,30 @@ elif selected_action_option == "Imputation":
                     else:
                         if K is not None and K <= 0:
                             streamlit.warning("Please enter a positive number of neighbors for KNNImputer.")
-                        if streamlit.checkbox("Preview your ", key="selectbox_after_impute"):
-                            columns_with_missing = records.columns[records.isnull().any()].tolist()
-                            missing_counts_greater_than_zero = records.isnull().sum()[records.isnull().sum() > 0]
-                            buffer = StringIO()
-                            records.info(buf=buffer)
-                            columns_info = buffer.getvalue()
-                            col1_imp, col2_imp, col3_imp = streamlit.columns(3)
-                            with col1_imp:
-                                if not columns_with_missing:
-                                    streamlit.write("columns with missing")
-                                    streamlit.info("No columns with missing values found.")
-                                else:
-                                    streamlit.write("columns with missing")
-                                    streamlit.write(columns_with_missing) 
-                            with col2_imp:
-                                streamlit.write("missing counts greater than zero")
-                                if not missing_counts_greater_than_zero.empty:
+                    if streamlit.checkbox(f"Once imputed your {column_to_dist} check nulls", key="selectbox_after_impute"):
+                        columns_with_missing = records.columns[records.isnull().any()].tolist()
+                        missing_counts_greater_than_zero = records.isnull().sum()[records.isnull().sum() > 0]
+                        buffer = StringIO()
+                        records.info(buf=buffer)
+                        columns_info = buffer.getvalue()
+                        col1_imp, col2_imp, col3_imp = streamlit.columns(3)
+                        with col1_imp:
+                            if not columns_with_missing:
+                                streamlit.write("columns with missing")
+                                streamlit.info("No columns with missing values found.")
+                            else:
+                                streamlit.write("columns with missing")
+                                streamlit.write(columns_with_missing) 
+                        with col2_imp:
+                            streamlit.write("missing counts greater than zero")
+                            if not missing_counts_greater_than_zero.empty:
                                     missing_counts_greater_than_zero = missing_counts_greater_than_zero.rename("count")
                                     streamlit.write(missing_counts_greater_than_zero)
-                                else:
-                                    streamlit.info(f"No missing values found in the selected {selected_file}.")    
-                            with col3_imp:
-                                streamlit.write("columns info")
-                                streamlit.code(columns_info)          
+                            else:
+                                streamlit.info(f"No missing values found in the selected {selected_file}.")    
+                        with col3_imp:
+                            streamlit.write("columns info")
+                            streamlit.code(columns_info)          
 
         except Exception as e:
             streamlit.error(f"Failed to load file: {e}")
