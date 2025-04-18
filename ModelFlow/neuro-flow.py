@@ -8,6 +8,8 @@ from tensorflow.python.keras.callbacks import TensorBoard
 from scipy import stats
 from statsmodels import api
 import datetime
+from sklearn.impute import KNNImputer
+from io import StringIO
 
 
 streamlit.markdown("""<style> .font {font-size: 5px; font-weight: bold; background-color: green} </style> """,
@@ -53,7 +55,7 @@ if streamlit.checkbox("Read Guide"):
             streamlit.write("Analyze the distribution of numeric features (e.g., skewed, Kurtosis, Gaussian, Logistic, Lognormal, Gumbel, Exponential, Weibull etc) to decide on transformations or statistical assumptions.") 
 
 Action_options = ["Select an action", "Select model fields", "Transform field values", "Update field data types",
-                  "Determine statistical distribution"]
+                  "Determine statistical distribution", "Imputation"]
 selected_action_option = streamlit.selectbox("Choose an action:", Action_options, key="selectbox_action")
 
 if selected_action_option == "Select an action":
@@ -271,6 +273,8 @@ elif selected_action_option == "Update field data types":
             streamlit.error(f"Failed to load file: {e}") 
 
 elif selected_action_option == "Determine statistical distribution":
+    with streamlit.expander("**Important**"):
+        streamlit.write("Ensure you have dealt with your data's missing values!")
     save_path = os.path.join("ModelFlow", "data-config", "saved-files")
     os.makedirs(save_path, exist_ok=True)
     saved_files = [
@@ -447,13 +451,13 @@ elif selected_action_option == "Determine statistical distribution":
                             else:
                                 return f"{dagostino_p:.3f} > {alpha}"
                         def Anderson_Darling_comp_stats_fun():
-                            alpha_levels = [15, 10, 5, 2.5, 1] # Significance levels in percent
+                            alpha_levels = [5, 2.5, 1] # Significance levels in percent
                             for i in range(len(anderson_result.critical_values)):
                                 if anderson_result.statistic > anderson_result.critical_values[i]:
                                     return f"✅ At the {alpha_levels[i]}% significance level, the test statistic ({anderson_result.statistic:.3f}) exceeds the critical value ({anderson_result.critical_values[i]:.3f}). This leads to the rejection of the null hypothesis of normality. Therefore, the data is likely not normally distributed."
-                                break
-                            else:
-                                return f"✅ The test statistic ({anderson_result.statistic:.3f}) is less than all critical values. Suggesting the {records_col.name} data is likely normally distributed (fail to reject the null hypothesis at common alpha levels)."
+                                # break
+                                elif anderson_result.statistic < anderson_result.critical_values[i]:
+                                    return f"✅ At the {alpha_levels[i]}% significance level, the test statistic ({anderson_result.statistic:.3f}) is less than all critical values. Suggesting the {records_col.name} data is likely normally distributed (fail to reject the null hypothesis at common alpha levels)."
 
                         shapiro_stat, shapiro_p = stats.shapiro(records_col)
                         dagostino_stat, dagostino_p = stats.normaltest(records_col)
@@ -471,6 +475,16 @@ elif selected_action_option == "Determine statistical distribution":
                         streamlit.markdown("<p class=weak-text>Interpretation by comparing the test statistic to critical values</>", unsafe_allow_html=True )
                         streamlit.write(f"{Anderson_Darling_comp_stats_fun()}")
                         streamlit.write("")
+                        if numpy.isnan(dagostino_stat) or numpy.isnan(dagostino_p):
+                            with streamlit.expander("Reason you getting 'nan'"):
+                                streamlit.warning(
+                                    f"You are getting 'nan' on 'D'Agostino K-squared Test' for **{records_col.name}** due to having Constant or Near-Constant Data "
+                                    f"where if all or almost all of your data points have the same value, the variance will be zero (or very close to it). "
+                                    f"This can lead to division by zero errors when calculating the test statistic, resulting in nan. "
+                                    f"Another possibility is that your number of data points is very small (typically less than 20)."
+                                    )
+                        else:
+                            ""
                         Statistical_tests = pandas.DataFrame({
                             "Statistical tests": ["Shapiro-Wilk", "D'Agostino K-squared"],
                             "Statistic": [f"{shapiro_stat:.3f}", f"{dagostino_stat:.3f}"],
@@ -557,6 +571,114 @@ elif selected_action_option == "Determine statistical distribution":
                         
 
         except Exception as e:
-            streamlit.error(f"Failed to load file: {e}")          
+            streamlit.error(f"Failed to load file: {e}") 
+
+elif selected_action_option == "Imputation":
+    save_path = os.path.join("ModelFlow", "data-config", "saved-files")
+    os.makedirs(save_path, exist_ok=True)
+    saved_files = [
+        files for files in os.listdir(save_path) if files.endswith(".csv") or files.endswith(".xlsx")
+        ]
+    file_choices = ["Select file to impute"] + saved_files
+    selected_file = streamlit.selectbox("📂 Choose from your saved files:", file_choices, key="selectbox_impute")
+    if selected_file == "Select file to impute":
+        streamlit.session_state["disable"] = True
+        streamlit.info("Please select file to continue.")
+    else:
+        try:
+            file_path = os.path.join(save_path, selected_file)
+            if selected_file.endswith(".csv"):
+                records = pandas.read_csv(file_path)
+            elif selected_file.endswith(".xlsx"):
+                records = pandas.read_excel(file_path)
+            if streamlit.checkbox(f"📄 Preview {selected_file}", key=f"preview_{selected_file}_impute_object"):
+                streamlit.write(records.head())
+            if streamlit.checkbox(f"Preview your {selected_file}", key="selectbox_before_impute"):
+                columns_with_missing = records.columns[records.isnull().any()].tolist()
+                missing_counts_greater_than_zero = records.isnull().sum()[records.isnull().sum() > 0]
+                buffer = StringIO()
+                records.info(buf=buffer)
+                columns_info = buffer.getvalue()
+                col1_imp, col2_imp, col3_imp = streamlit.columns(3)
+                with col1_imp:
+                    if not columns_with_missing:
+                        streamlit.write("columns with missing")
+                        streamlit.info("No columns with missing values found.")
+                    else:
+                        streamlit.write("columns with missing")
+                        streamlit.write(columns_with_missing) 
+                with col2_imp:
+                    streamlit.write("missing counts greater than zero")
+                    if not missing_counts_greater_than_zero.empty:
+                        missing_counts_greater_than_zero = missing_counts_greater_than_zero.rename("count")
+                        streamlit.write(missing_counts_greater_than_zero)
+                    else:
+                        streamlit.info(f"No missing values found in the selected {selected_file}.")    
+                with col3_imp:
+                    streamlit.write("columns info")
+                    streamlit.code(columns_info)      
+             
+            records_columns = records.columns.tolist()
+            select_columns_dist = streamlit.multiselect(
+                "Choose fields to impute", records_columns
+                )
+            if select_columns_dist:
+                column_to_dist = streamlit.selectbox("Choose a column to continue", select_columns_dist, key="selectbox_impute_column")
+                if column_to_dist:
+                    streamlit.write("The 'K' in K-Nearest Neighbors (KNN) represents the number of nearest neighbors you want the algorithm to consider.")
+                    with streamlit.expander("Warning"):
+                        streamlit.write("When 'K' is too **small** (e.g., K=1 or K=2), the imputation for a missing value will be heavily influenced by only one or two very close neighbors." \
+                        "If those neighbors happen to be outliers or contain noise, the imputed value will likely be inaccurate and not representative of the underlying data distribution." \
+                        "This can introduce artificial variability and distort relationships in your data.")
+                        streamlit.write("When 'K' is too **large**, the imputation for a missing value will be based on a larger and potentially more diverse set of neighbors." \
+                        "This can smooth out local variations and potentially mask important patterns in the data.")
+
+                    K = streamlit.number_input("Add KNNImputer", step=1, format="%d")
+                    if K is not None and K > 0:
+                        if streamlit.button(f"Impute and save your updated {selected_file}"):
+                            try:
+                                imputer = KNNImputer(n_neighbors = K, weights="uniform")
+                                imputed_array = imputer.fit_transform(records[[column_to_dist]])
+                                imputed_field = pandas.DataFrame(imputed_array, columns=[column_to_dist], index=records.index)
+                                records[column_to_dist] = imputed_field
+                                save_path = os.path.join("ModelFlow", "data-config", "saved-files")
+                                os.makedirs(save_path, exist_ok=True)
+                                full_path = os.path.join(save_path, selected_file)
+                                records.to_csv(full_path, index=False)         
+                                streamlit.success(f"✅ You have successfully imputed and saved your {selected_file}!")
+                            except Exception as e:
+                                streamlit.error(f"An error occurred during imputation: {e}")  
+
+                    else:
+                        if K is not None and K <= 0:
+                            streamlit.warning("Please enter a positive number of neighbors for KNNImputer.")
+                        if streamlit.checkbox("Preview your ", key="selectbox_after_impute"):
+                            columns_with_missing = records.columns[records.isnull().any()].tolist()
+                            missing_counts_greater_than_zero = records.isnull().sum()[records.isnull().sum() > 0]
+                            buffer = StringIO()
+                            records.info(buf=buffer)
+                            columns_info = buffer.getvalue()
+                            col1_imp, col2_imp, col3_imp = streamlit.columns(3)
+                            with col1_imp:
+                                if not columns_with_missing:
+                                    streamlit.write("columns with missing")
+                                    streamlit.info("No columns with missing values found.")
+                                else:
+                                    streamlit.write("columns with missing")
+                                    streamlit.write(columns_with_missing) 
+                            with col2_imp:
+                                streamlit.write("missing counts greater than zero")
+                                if not missing_counts_greater_than_zero.empty:
+                                    missing_counts_greater_than_zero = missing_counts_greater_than_zero.rename("count")
+                                    streamlit.write(missing_counts_greater_than_zero)
+                                else:
+                                    streamlit.info(f"No missing values found in the selected {selected_file}.")    
+                            with col3_imp:
+                                streamlit.write("columns info")
+                                streamlit.code(columns_info)          
+
+        except Exception as e:
+            streamlit.error(f"Failed to load file: {e}")
+
 
 # To add data value range an example 0 - 10 group it as "0 to 10" 

@@ -50,11 +50,11 @@ elif Options == "Upload CSV":
 
 elif Options == "Upload Excel":
     uploaded_Excel_file = streamlit.file_uploader("Upload an Excel file", type=["xlsx", "xls"])
-    original_file_name = uploaded_Excel_file.name
     if "show_data" not in streamlit.session_state:
         streamlit.session_state["show_data"] = False
     if uploaded_Excel_file is not None:
-        Excel_Object = pandas.read_csv(uploaded_Excel_file)
+        original_file_name = uploaded_Excel_file.name
+        Excel_Object = pandas.read_excel(uploaded_Excel_file)
         streamlit.success(f"{original_file_name} uploaded successfully!")
         if streamlit.checkbox(f"Preview {original_file_name}"):
             streamlit.write(Excel_Object.head())
