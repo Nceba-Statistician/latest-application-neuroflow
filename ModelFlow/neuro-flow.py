@@ -22,11 +22,38 @@ streamlit.markdown(""" <style> .footer { position: fixed; bottom: 0; left: 0; wi
 streamlit.markdown(""" <style> .emotion-cache {vertical-align: middle; overflow: hidden; color: inherit; fill: currentcolor; display: inline-flex; -webkit-box-align: center; align-items: center; font-size: 1.25rem; width: 1.25rem; height: 1.25rem; flex-shrink: 0; } </style>""",
     unsafe_allow_html=True
 )
+streamlit.markdown(""" <style> .weak-text {vertical-align: middle; position: absolute; font-size: 20px; color: gray; font-weight: bold;} </style>""",
+    unsafe_allow_html=True
+)
+streamlit.markdown(""" <style> .simple-text {vertical-align: middle; position: absolute; font-size: 20px; color: gray;} </style>""",
+    unsafe_allow_html=True
+)
 streamlit.markdown("""<div class="titlemodel">Neural Network Model Builder for Prediction</div>""", unsafe_allow_html=True)
 
 streamlit.subheader("")
+streamlit.info("Step-by-step guide to building models using traditional statistical methods and neural networks")
+if streamlit.checkbox("Read Guide"):
+    streamlit.write("")
+    streamlit.markdown("<p class='weak-text'>Actions - skip steps when necessary</p>", unsafe_allow_html=True)
+    streamlit.write("")
+    col1_guide, col2_guide = streamlit.columns(2)
+    with col1_guide:
+        streamlit.write("Select model fields")
+        with streamlit.expander("Purpose"):
+            streamlit.write("Choose the key features needed for training and prediction, and assign them to a designated variable.")
+        streamlit.write("Update field data types")
+        with streamlit.expander("Purpose"):
+            streamlit.write("Ensure each column has the correct data type (e.g., float for continuous variables, int for categories) to avoid model errors.")  
+    with col2_guide:        
+        streamlit.write("Transform field values")   
+        with streamlit.expander("Purpose"):
+            streamlit.write("Convert categorical values into numerical or standardized format for ML compatibility.")
+        streamlit.write("Determine statistical distribution")
+        with streamlit.expander("Purpose"):
+            streamlit.write("Analyze the distribution of numeric features (e.g., skewed, Kurtosis, Gaussian, Logistic, Lognormal, Gumbel, Exponential, Weibull etc) to decide on transformations or statistical assumptions.") 
+
 Action_options = ["Select an action", "Select model fields", "Transform field values", "Update field data types",
-                  "Determine Statistical Distribution"]
+                  "Determine statistical distribution"]
 selected_action_option = streamlit.selectbox("Choose an action:", Action_options, key="selectbox_action")
 
 if selected_action_option == "Select an action":
@@ -128,7 +155,7 @@ elif selected_action_option == "Transform field values":
                             os.makedirs(save_path, exist_ok=True)
                             full_path = os.path.join(save_path, selected_file)
                             records.to_csv(full_path, index=False)
-                            streamlit.success(f"✅ Field updated successfully!")
+                            streamlit.success(f"✅ {selected_file} updated successfully!")
                         if streamlit.checkbox(f"Preview updated {selected_file}", key=f"preview_{selected_file}_transform_object_after"):
                             streamlit.write(records.head())
         except Exception as e:
@@ -243,7 +270,7 @@ elif selected_action_option == "Update field data types":
         except Exception as e:
             streamlit.error(f"Failed to load file: {e}") 
 
-elif selected_action_option == "Determine Statistical Distribution":
+elif selected_action_option == "Determine statistical distribution":
     save_path = os.path.join("ModelFlow", "data-config", "saved-files")
     os.makedirs(save_path, exist_ok=True)
     saved_files = [
@@ -271,94 +298,265 @@ elif selected_action_option == "Determine Statistical Distribution":
             if select_columns_dist:
                 column_to_dist = streamlit.selectbox("Choose a column to continue", select_columns_dist, key="selectbox_dist_column")
                 if column_to_dist:
-                    if streamlit.checkbox("Preview distribution type"):
+                    streamlit.write("")
+                    col1_distribution, col2_distribution = streamlit.columns(2)
+                    with col1_distribution:
+                        streamlit.write("Gaussian")
+                        with streamlit.expander("Description"):
+                            streamlit.write("A continuous probability distribution characterized by its bell-shaped curve. It is symmetrical around the mean, and its spread is determined by the standard deviation.")
+                        streamlit.write("Lognormal")
+                        with streamlit.expander("Description"):
+                            streamlit.write("The logarithm of the variable is normally distributed. Often used for data that is positive and skewed.")
+
+                        streamlit.write("Exponential")
+                        with streamlit.expander("Description"):
+                            streamlit.write("Describes the time between events in a Poisson process, where events occur continuously and independently at a constant average rate. Often used for modeling failure times.")
+
+                    with col2_distribution:
+                        streamlit.write("Logistic")
+                        with streamlit.expander("Description"):
+                            streamlit.write("S-shaped distribution similar to the normal distribution but with heavier tails. Its CDF is the sigmoid function, commonly used as an activation function in neural networks.")
+
+                        streamlit.write("Gumbel")
+                        with streamlit.expander("Description"):
+                            streamlit.write("Used to model the distribution of the maximum (or minimum) of a number of independent, identically distributed random variables. Relevant in extreme value theory.")
+
+                        streamlit.write("Weibull")
+                        with streamlit.expander("Description"):
+                            streamlit.write("A versatile distribution that can model a variety of shapes depending on its parameters. Used extensively in reliability analysis and survival analysis.")
+                            
+                    streamlit.write("")
+                    streamlit.markdown("<p class='weak-text'>Preview distributions</p>", unsafe_allow_html=True)
+                    streamlit.write("")
+                    if streamlit.checkbox("Gaussian"):
                         records_col = records[column_to_dist]
-                        streamlit.write(f"Analyzing distribution of '{records_col.name}':")
+                        
                         skewness = stats.skew(records_col)
-                        if skewness == 0.0:
-                            streamlit.info(f"Skewness: {skewness:.3f} → perfectly symmetric")
-                        elif -0.5 <= skewness <= 0.5:
-                            streamlit.info(f"Skewness: {skewness:.3f} → approximately symmetric")  
-                        elif -1.0 <= skewness < -0.5:  
-                            streamlit.info(f"Skewness: {skewness:.3f} → longer tail on the left")
-                        elif skewness < -1.0:
-                            streamlit.info(f"Skewness: {skewness:.3f} → extreme longer tail on the left")
-                        elif 0.5 < skewness <= 1.0:
-                            streamlit.info(f"Skewness: {skewness:.3f} → longer tail on the right")  
-                        elif skewness > 1.0:
-                            streamlit.info(f"Skewness: {skewness:.3f} → extreme longer tail on the right")    
+                        def skewness_value_fun():
+                            if skewness == 0.0:
+                                return f"{skewness:.3f}"
+                            elif -0.5 <= skewness <= 0.5:
+                                return f"{skewness:.3f}"  
+                            elif -1.0 <= skewness < -0.5:  
+                                return f"{skewness:.3f}"
+                            elif skewness < -1.0:
+                                return f"{skewness:.3f}"
+                            elif 0.5 < skewness <= 1.0:
+                                return f"{skewness:.3f}" 
+                            elif skewness > 1.0:
+                                return f"{skewness:.3f}"
+                        def skewness_description_fun():
+                            if skewness == 0.0:
+                                return "Perfectly symmetric"
+                            elif -0.5 <= skewness <= 0.5:
+                                return "Approximately symmetric" 
+                            elif -1.0 <= skewness < -0.5:  
+                                return "Longer tail on the left"
+                            elif skewness < -1.0:
+                                return "Extreme longer tail on the left"
+                            elif 0.5 < skewness <= 1.0:
+                                return "Longer tail on the right" 
+                            elif skewness > 1.0:
+                                return "Extreme longer tail on the right"
+                                 
+                        Kurtosis = stats.kurtosis(records_col)
+                        
+                        def Kurtosis_value_fun():
+                            if Kurtosis == 0.0:
+                                return f"{Kurtosis:.3f}"
+                            elif -0.5 <= Kurtosis <= 0.5:
+                                return f"{Kurtosis:.3f}"
+                            elif -3.0 < Kurtosis < -0.5:
+                                return f"{Kurtosis:.3f}"
+                            elif Kurtosis <= -3.0:
+                                return f"{Kurtosis:.3f}"                            
+                            elif 0.5 < Kurtosis < 3.0:  
+                                return f"{Kurtosis:.3f}"  
+                            elif Kurtosis >= 3:
+                                return f"{Kurtosis:.3f}"
+                         
+                        def Kurtosis_description_fun():
+                            if Kurtosis == 0.0:
+                                return "Normal distributed (mesokurtic)"
+                            elif -0.5 <= Kurtosis <= 0.5:
+                                return "Approximately normal"
+                            elif -3.0 < Kurtosis < -0.5:
+                                return "Light tailed, flatter peak (platykurtic) → fewer outliers"
+                            elif Kurtosis <= -3.0:
+                                return "Very flat, light tail (platykurtic) — fewer extreme outliers"                                
+                            elif 0.5 < Kurtosis < 3.0:  
+                                return "Heavy tailed, sharp peak (leptokurtic) → more outliers"  
+                            elif Kurtosis >= 3:
+                                return "Very peaked, fat tail (leptokurtic) → more extreme outliers"                        
+                                                
+                        Shapiro_Wilk, D_Agostino_K_squared, Anderson_Darling = streamlit.columns(3)
+                        with Shapiro_Wilk:
+                            streamlit.write("Shapiro-Wilk")
+                            with streamlit.expander("Description"):
+                                streamlit.write("The test statistic measures how well the data fits a normal distribution, with values close to 1 indicating normality.")
+                        with D_Agostino_K_squared:
+                            streamlit.write("D'Agostino K-squared")
+                            with streamlit.expander("Description"):
+                                streamlit.write("The test assesses normality by analyzing the skewness and kurtosis of the sample data. It calculates how far these sample moments deviate from the expected skewness (0) and kurtosis (3) of a normal distribution.") 
+                        with Anderson_Darling:
+                            streamlit.write("Anderson-Darling")
+                            with streamlit.expander("Description"):
+                                streamlit.write("It is a goodness-of-fit test that compares the cumulative distribution function (CDF) of your sample data to the CDF of the hypothesized distribution.") 
 
-                        Kurtosis = stats.skew(records_col)
-                        if Kurtosis == 0.0:
-                            streamlit.info(f"Kurtosis: {Kurtosis:.3f} → normal distributed (mesokurtic)")
-                        elif -0.5 <= Kurtosis <= 0.5:
-                            streamlit.info(f"Kurtosis: {Kurtosis:.3f} → approximately normal")
-                        elif -3.0 < Kurtosis < -0.5:
-                            streamlit.info(f"Kurtosis: {Kurtosis:.3f} → light tailed, flatter peak (platykurtic) → fewer outliers") 
-                        elif Kurtosis <= -3.0:
-                            streamlit.info(f"Kurtosis: {Kurtosis:.3f} → Very flat, light tail (platykurtic) — fewer extreme outliers")                                  
-                        elif 0.5 < Kurtosis < 3.0:  
-                            streamlit.info(f"Kurtosis: {Kurtosis:.3f} → heavy tailed, sharp peak (leptokurtic) → more outliers")   
-                        elif Kurtosis >= 3:
-                            streamlit.info(f"Kurtosis: {Kurtosis:.3f} → Very peaked, fat tail (leptokurtic) → more extreme outliers")
+                        streamlit.write("")
+                        
+                        streamlit.write("Gaussian Hypothesis:")
+                        
+                        nullhyp, alterhyp = streamlit.columns(2)
+                        with nullhyp:
+                            streamlit.write("Null hypothesis")
+                            with streamlit.expander("Assumption"):
+                                streamlit.write("Data follow a normal distribution")
+                        with alterhyp:
+                            streamlit.write("Alternative hypothesis")
+                            with streamlit.expander("Assumption"):
+                                streamlit.write("Data do not follow a normal distribution")
+                            
+                        streamlit.write("")
 
-                        streamlit.write("Statistical tests:")
+                        streamlit.write(f"Calculated Measure for {records_col.name}:")                                                                                             
+                        shape_dist = pandas.DataFrame({
+                            "Measure": ["Skewness", "Kurtosis"],
+                            "Values": [skewness_value_fun(), Kurtosis_value_fun()],
+                            "Description": [skewness_description_fun(), Kurtosis_description_fun()]
+                        })
+                        streamlit.dataframe(shape_dist, hide_index=True) 
+                        
                         shapiro_stat, shapiro_p = stats.shapiro(records_col)
                         dagostino_stat, dagostino_p = stats.normaltest(records_col)
                         anderson_result = stats.anderson(records_col, dist='norm')
-                        streamlit.info(f"Shapiro-Wilk → Statistic: {shapiro_stat:.4f} and p-value: {shapiro_p:.4f}")
-                        streamlit.info(f"D'Agostino K-squared → Statistic: {dagostino_stat:.4f} and p-value: {dagostino_p:.4f}")
-                        streamlit.write("Anderson-Darling Test:")
-                        streamlit.info(f"Test Statistic: {anderson_result.statistic:.4f}")
-                        streamlit.info(f"Critical Values: {anderson_result.critical_values}")
-                        streamlit.info(f"Significance Levels: {anderson_result.significance_level}")
-
-                        # streamlit.info(f"Shapiro-Wilk | p-value: {stats.shapiro(records_col):.4f} | {stats.shapiro(records_col).pvalue:.4f}")
-                        # streamlit.info(f"D'Agostino K-squared | p-value: {stats.normaltest(records_col):.4f} | {stats.normaltest(records_col).pvalue:.4f}")
-                        # streamlit.info(f"Anderson-Darling statistic: {stats.anderson(records_col, dist='norm'):.4f}")
-                        streamlit.write("The chosen significance level (α) is set to 0.05:") # 
-                        streamlit.write("null hypothesis: data follow a normal distribution")
-                        streamlit.write("alternative hypothesis: data do not follow a normal distribution")
                         alpha = 0.05
-                        if stats.shapiro(records_col).pvalue <= alpha or stats.normaltest(records_col) <= alpha:
-                            streamlit.success(f"✅ Shapiro-Wilk and D'Agostino K-squared statistical tests suggests your {records_col.name} data is likely not normally distributed (reject the null hypothesis)")
-                        else:
-                            streamlit.success(f"✅ Shapiro-Wilk and D'Agostino K-squared statistical tests suggests your {records_col.name} data is likely normally distributed (fail to reject the null hypothesis)")
-                  
-                        streamlit.info("If Shapiro-Wilk or D'Agostino K-squared is less than or equal to alpha (α), then reject your null hypothesis!")
+                        def Statistical_tests_conclusion_fun():
+                            if shapiro_p <= alpha or dagostino_p <= alpha:
+                                return f"✅ The p-values are less than/equal to the significance level (α = 0.05). This leads to the rejection of the null hypothesis of normality. Therefore, the data is likely not normally distributed."
+                            else:
+                                return f"✅ The p-values exceed the significance level (α = 0.05), indicating no significant deviation from normality. Thus, the data is likely normally distributed."
+                        def Statistical_tests_shapiro_p_value_fun():
+                            if shapiro_p <= alpha:
+                                return f"{shapiro_p:.3f} <= {alpha}"
+                            else:
+                                return f"{shapiro_p:.3f} > {alpha}"
+                        def Statistical_tests_dagostino_p_value_fun():
+                            if dagostino_p <= alpha:
+                                return f"{dagostino_p:.3f} <= {alpha}"
+                            else:
+                                return f"{dagostino_p:.3f} > {alpha}"
+                        def Anderson_Darling_comp_stats_fun():
+                            alpha_levels = [15, 10, 5, 2.5, 1] # Significance levels in percent
+                            for i in range(len(anderson_result.critical_values)):
+                                if anderson_result.statistic > anderson_result.critical_values[i]:
+                                    return f"✅ At the {alpha_levels[i]}% significance level, the test statistic ({anderson_result.statistic:.3f}) exceeds the critical value ({anderson_result.critical_values[i]:.3f}). This leads to the rejection of the null hypothesis of normality. Therefore, the data is likely not normally distributed."
+                                break
+                            else:
+                                return f"✅ The test statistic ({anderson_result.statistic:.3f}) is less than all critical values. Suggesting the {records_col.name} data is likely normally distributed (fail to reject the null hypothesis at common alpha levels)."
+
+                        shapiro_stat, shapiro_p = stats.shapiro(records_col)
+                        dagostino_stat, dagostino_p = stats.normaltest(records_col)
+                        anderson_result = stats.anderson(records_col, dist='norm')
+                        streamlit.write(f"Statistical tests for {records_col.name}")
                         
-                        streamlit.write("Interpretation by comparing the test statistic to critical values")   
-                        alpha_levels = [15, 10, 5, 2.5, 1] # Significance levels in percent
-                        streamlit.write(f"Significance levels in percent: {alpha_levels}")
-                        for i in range(len(anderson_result.critical_values)):
-                             if anderson_result.statistic > anderson_result.critical_values[i]:
-                                 streamlit.info(f"At the {alpha_levels[i]}% significance level, the test statistic ({anderson_result.statistic:.3f}) is greater than the critical value ({anderson_result.critical_values[i]:.3f}).")
-                                 streamlit.info("Suggesting the data is likely not normally distributed (reject the null hypothesis).")
-                                 break
-                        else:
-                            streamlit.info(f"The test statistic ({anderson_result.statistic:.3f}) is less than all critical values.")
-                            streamlit.info(f"Suggesting the {records_col.name} data is likely normally distributed (fail to reject the null hypothesis at common alpha levels).")
+                        Anderson_Darling_stats = pandas.DataFrame({
+                            "Statistical test": ["Anderson-Darling"],
+                            "Statistic": [f"{anderson_result.statistic:.3f}"],
+                            "Critical Values": [f"{anderson_result.critical_values}"],
+                            "Significance Levels": [f"{anderson_result.significance_level}"]
+                        })
+                        streamlit.dataframe(Anderson_Darling_stats, hide_index=True)
+                        streamlit.write("")
+                        streamlit.markdown("<p class=weak-text>Interpretation by comparing the test statistic to critical values</>", unsafe_allow_html=True )
+                        streamlit.write(f"{Anderson_Darling_comp_stats_fun()}")
+                        streamlit.write("")
+                        Statistical_tests = pandas.DataFrame({
+                            "Statistical tests": ["Shapiro-Wilk", "D'Agostino K-squared"],
+                            "Statistic": [f"{shapiro_stat:.3f}", f"{dagostino_stat:.3f}"],
+                            "p-value": [f"{shapiro_p:.3f}", f"{dagostino_p:.3f}"],
+                            "Alpha Comparison (α = 0.05)":[f"{Statistical_tests_shapiro_p_value_fun()}", f"{Statistical_tests_dagostino_p_value_fun()}"]
+                        })
+                        # Statistical_tests.set_index("Statistical tests", inplace=True)
+                        streamlit.dataframe(
+                            Statistical_tests, hide_index=True
+                        )
+                        streamlit.write("")
+                        streamlit.markdown("<p class=weak-text>Conclution</>", unsafe_allow_html=True)
+                        streamlit.write(f"{Statistical_tests_conclusion_fun()}") 
+                        streamlit.write("")
+                        
                         streamlit.write("")
                         pyplot.figure(figsize=(5, 2))
                         # pyplot.subplot(1, 2, 1)
                         seaborn.histplot(records_col, kde=True, bins=30)
                         pyplot.title(f"Histogram with KDE - {records_col.name}") # Kernel Density Estimation will make our PDF smooth and continuous estimate 
                         pyplot.tight_layout()
-                        streamlit.pyplot(pyplot) 
+                        streamlit.pyplot(pyplot)                
                         
-                        pyplot.figure(figsize=(5, 2))
-                        # pyplot.subplot(1, 2, 2)
-                        api.qqplot(records_col, line="s")
-                        pyplot.title(f"Q-Q Plot - {records_col.name}")
-                        pyplot.tight_layout()
-                        streamlit.pyplot(pyplot)                            
+                        ppoints = numpy.linspace(0.01, 0.99, len(records_col))
+                        quantiles_sample = numpy.quantile(records_col, ppoints)
+                        quantiles_theoretical = stats.norm.ppf(ppoints)
+                        
+                        fig, ax = pyplot.subplots()
+                        ax.scatter(quantiles_theoretical, quantiles_sample)
+                        ax.plot([-4, 4], [-4, 4], color='r', linestyle='--')  # Line for perfect normality
+                        ax.set_xlabel("Theoretical Quantiles (Standard Normal)")
+                        ax.set_ylabel("Sample Quantiles")
+                        ax.set_title("QQ Plot")
+                        ax.grid(True)
+                        streamlit.pyplot(fig)
+                        
+                        num_points = streamlit.slider("Number of data points:", min_value=10, max_value=500, value=100)
+                        mean = streamlit.slider("Mean:", min_value=-5.0, max_value=5.0, value=0.0)
+                        std_dev = streamlit.slider("Standard Deviation:", min_value=0.1, max_value=5.0, value=1.0)
+                        data = numpy.random.normal(loc=mean, scale=std_dev, size=num_points)
+                        ppoints = numpy.linspace(0.01, 0.99, len(records_col))
+                        quantiles_sample = numpy.quantile(records_col, ppoints)
+                        quantiles_theoretical = stats.norm.ppf(ppoints)
+                        fig, ax = pyplot.subplots()
+                        ax.scatter(quantiles_theoretical, quantiles_sample)
+                        ax.plot([-4, 4], [-4, 4], color='r', linestyle='--')
+                        ax.set_xlabel("Theoretical Quantiles (Standard Normal)")
+                        ax.set_ylabel("Sample Quantiles")
+                        ax.set_title("QQ Plot")
+                        ax.grid(True)
+                        streamlit.pyplot(fig)
+                        
+                        
+                    elif streamlit.checkbox("Logistic"):
+                        records_col = records[column_to_dist]
+                        
+                        skewness = stats.skew(records_col)
+                        streamlit.write("Coming soon!")
+                        
+                    elif streamlit.checkbox("Lognormal"):
+                        records_col = records[column_to_dist]
+                        
+                        skewness = stats.skew(records_col)
+                        streamlit.write("Coming soon!")
+                        
+                    elif streamlit.checkbox("Gumbel"):
+                        records_col = records[column_to_dist]
+                        
+                        skewness = stats.skew(records_col)
+                        streamlit.write("Coming soon!")
+                        
+                    elif streamlit.checkbox("Exponential"):
+                        records_col = records[column_to_dist]
+                        
+                        skewness = stats.skew(records_col)
+                        streamlit.write("Coming soon!")
+                        
+                    elif streamlit.checkbox("Weibull"):
+                        records_col = records[column_to_dist]
+                        
+                        skewness = stats.skew(records_col)
+                        streamlit.write("Coming soon!")
+                        # survival analysis with Weibull
+                        
 
         except Exception as e:
             streamlit.error(f"Failed to load file: {e}")          
 
-# 
-
-
-
-
-# To add data value range an example 0 - 10 group it as "0 to 10"                   
+# To add data value range an example 0 - 10 group it as "0 to 10" 
