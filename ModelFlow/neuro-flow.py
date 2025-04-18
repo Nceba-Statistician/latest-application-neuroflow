@@ -696,10 +696,11 @@ elif selected_action_option == "Imputation":
                                 if selected_file.endswith(".csv"):
                                     full_path = os.path.join(save_path, os.path.splitext(selected_file)[0] + ".csv")
                                     records.to_csv(full_path, index=False)
+                                    streamlit.success(f"✅ You have successfully imputed and saved your {selected_file}!")
                                 elif selected_file.endswith(".xlsx"):
                                     full_path = os.path.join(save_path, os.path.splitext(selected_file)[0] + ".xlsx")
-                                    records.to_excel(full_path, index=False, engine='openpyxl')     
-                                streamlit.success(f"✅ You have successfully imputed and saved your {selected_file}!")
+                                    records.to_excel(full_path, index=False, engine='openpyxl')
+                                    streamlit.success(f"✅ You have successfully imputed and saved your {selected_file}!")
                             except Exception as e:
                                 streamlit.error(f"An error occurred during imputation: {e}")  
 
