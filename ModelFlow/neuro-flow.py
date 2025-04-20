@@ -55,7 +55,7 @@ if streamlit.checkbox("Read Guide"):
             streamlit.write("Analyze the distribution of numeric features (e.g., skewed, Kurtosis, Gaussian, Logistic, Lognormal, Gumbel, Exponential, Weibull etc) to decide on transformations or statistical assumptions.") 
 
 Action_options = ["Select an action", "Select model fields", "Transform field values", "Update field data types",
-                  "Determine statistical distribution", "Imputation"]
+                  "Imputation", "Correlation Matrix", "Determine statistical distribution", "Model builder"]
 selected_action_option = streamlit.selectbox("Choose an action:", Action_options, key="selectbox_action")
 
 if selected_action_option == "Select an action":
@@ -108,9 +108,6 @@ elif selected_action_option == "Select model fields":
                             full_path = os.path.join(save_path, os.path.splitext(file_name_input)[0] + ".xlsx")
                             selected_records.to_excel(full_path, index=False, engine='openpyxl')
                             streamlit.success(f"✅ {file_name_input} successfully saved! You can find file at manage-files.")
-                        # full_path = os.path.join(save_path, f"{file_name_input}.csv")
-                        # selected_records.to_csv(full_path, index=False)
-                        
                  
 
         except Exception as e:
@@ -735,5 +732,156 @@ elif selected_action_option == "Imputation":
         except Exception as e:
             streamlit.error(f"Failed to load file: {e}")
 
+elif selected_action_option == "Correlation Matrix":
+    with streamlit.expander("**Important**"):
+        streamlit.write("Ensure you have dealt with your data's missing values and data types!")
+    save_path = os.path.join("ModelFlow", "data-config", "saved-files")
+    os.makedirs(save_path, exist_ok=True)
+    saved_files = [
+        files for files in os.listdir(save_path) if files.endswith(".csv") or files.endswith(".xlsx")
+        ]
+    file_choices = ["Select file to Calculate Correlation Matrix"] + saved_files
+    selected_file = streamlit.selectbox("📂 Choose from your saved files:", file_choices, key="selectbox_dist")
+    if selected_file == "Select file to Calculate Correlation Matrix":
+        streamlit.session_state["disable"] = True
+        streamlit.info("Please select file to continue.")
+    else:
+        try:
+            file_path = os.path.join(save_path, selected_file)
+            if selected_file.endswith(".csv"):
+                records = pandas.read_csv(file_path)
+            elif selected_file.endswith(".xlsx"):
+                records = pandas.read_excel(file_path)
+            if streamlit.checkbox(f"📄 Preview {selected_file}", key=f"preview_{selected_file}_Correlation__object"):
+                streamlit.write(records.head())
+            numberOfPairwiseCorrelation = streamlit.selectbox("Select Pairwise Correlation type", ["", "Pairwise Correlation"])
+            if numberOfPairwiseCorrelation == "":
+                streamlit.info("Select Pairwise Correlation to continue")
+            elif numberOfPairwiseCorrelation == "Pairwise Correlation":
+                records_columns = records.columns.tolist()
+                select_two_columns = streamlit.multiselect(
+                    "Choose exactly two fields for specific Pairwise Correlation",
+                    records_columns,
+                    max_selections=2,
+                    key="select_two_columns" 
+                    )
+                if len(select_two_columns) == 2:
+                    first_feature = select_two_columns[0]
+                    second_feature = select_two_columns[1]
+                    if streamlit.checkbox(f"Show Correlation for {first_feature} and {second_feature}", key=f"show_corr_{first_feature}_{second_feature}"):
+                        streamlit.write("Correlation Analysis")
+                        try:
+                            correlation_value = records[[first_feature, second_feature]].corr().iloc[0, 1]
+                            streamlit.write(f"The correlation between {first_feature} and {second_feature} is: {correlation_value:.2f}")
+                        except Exception as e:
+                            streamlit.error(f"Error calculating correlation: {e}")
+                elif select_two_columns:
+                    streamlit.warning("Please select exactly two features for specific pairwise correlation.")
+                else:
+                    streamlit.info("Choose two fields to see their specific pairwise correlation.")
 
-# To add data value range an example 0 - 10 group it as "0 to 10" 
+                streamlit.markdown("---")
+
+                select_multiple_columns = streamlit.multiselect(
+                    "Choose at least two fields for the Correlation Matrix",
+                    records_columns,
+                    key="select_multiple_columns" 
+                    )
+                if len(select_multiple_columns) >= 2:
+                    if streamlit.checkbox("Show Correlation Matrix for selected fields", key="show_corr_matrix"):
+                        streamlit.write("Correlation Matrix:")
+                        try:
+                            correlation_matrix_any = records[select_multiple_columns].corr()
+                            streamlit.dataframe(correlation_matrix_any)
+                            fig_matrix, ax_matrix = pyplot.subplots(figsize=(6, 4))
+                            seaborn.heatmap(correlation_matrix_any, annot=True, cmap='coolwarm', fmt=".2f", linewidths=.5, ax=ax_matrix)
+                            streamlit.pyplot(fig_matrix)
+                        except Exception as e:
+                            streamlit.error(f"Error generating correlation matrix: {e}")
+                elif select_multiple_columns:
+                    streamlit.warning("Please select at least two features to display the correlation matrix.")
+                else:
+                    streamlit.info("Choose at least two fields to see their correlation matrix.")  
+        except Exception as e:
+            streamlit.error(f"Failed to load file: {e}")    
+
+elif selected_action_option == "Model builder":
+    with streamlit.expander("**Important**"):
+        streamlit.write("Ensure you have dealt with your data's missing values and data types!")
+    model_type_choise = streamlit.selectbox("Choose Model Approach",
+                                            ["", "Traditional Statistical Methods", "Neural Networks"])
+    if model_type_choise == "":
+        streamlit.session_state["disable"] = True
+    elif model_type_choise == "Traditional Statistical Methods":
+        Distribution_Assumptions_choice = streamlit.selectbox("Choose Distribution Assumption",
+                                            ["", "Distribution-Based Methods (Parametric)", "Distribution-Free Methods (Non-Parametric)"])
+        if Distribution_Assumptions_choice == "":
+            streamlit.session_state["disable"] = True
+        elif Distribution_Assumptions_choice == "Distribution-Based Methods (Parametric)":
+            save_path = os.path.join("ModelFlow", "data-config", "saved-files")
+            os.makedirs(save_path, exist_ok=True)
+            saved_files = [
+                files for files in os.listdir(save_path) if files.endswith(".csv") or files.endswith(".xlsx")
+                ]
+            file_choices = ["Select file to build model"] + saved_files
+            selected_file = streamlit.selectbox("📂 Choose from your saved files:", file_choices, key="selectbox_model_builder_Parametric")
+            if selected_file == "Select file to build model":
+                streamlit.session_state["disable"] = True
+                streamlit.info("Please select file to continue.")
+            else:
+                try:
+                    file_path = os.path.join(save_path, selected_file)
+                    if selected_file.endswith(".csv"):
+                        records = pandas.read_csv(file_path)
+                    elif selected_file.endswith(".xlsx"):
+                        records = pandas.read_excel(file_path)
+                    if streamlit.checkbox(f"📄 Preview {selected_file}", key=f"preview_{selected_file}_model_builder_Parametric_object"):
+                        streamlit.write(records.head())
+                except Exception as e:
+                    streamlit.error(f"Failed to load file: {e}")
+
+        elif Distribution_Assumptions_choice == "Distribution-Free Methods (Non-Parametric)":
+            save_path = os.path.join("ModelFlow", "data-config", "saved-files")
+            os.makedirs(save_path, exist_ok=True)
+            saved_files = [
+                files for files in os.listdir(save_path) if files.endswith(".csv") or files.endswith(".xlsx")
+                ]
+            file_choices = ["Select file to build model"] + saved_files
+            selected_file = streamlit.selectbox("📂 Choose from your saved files:", file_choices, key="selectbox_model_builder_Non_Parametric")
+            if selected_file == "Select file to build model":
+                streamlit.session_state["disable"] = True
+                streamlit.info("Please select file to continue.")
+            else:
+                try:
+                    file_path = os.path.join(save_path, selected_file)
+                    if selected_file.endswith(".csv"):
+                        records = pandas.read_csv(file_path)
+                    elif selected_file.endswith(".xlsx"):
+                        records = pandas.read_excel(file_path)
+                    if streamlit.checkbox(f"📄 Preview {selected_file}", key=f"preview_{selected_file}_model_builder_Non_Parametric_object"):
+                        streamlit.write(records.head())
+                except Exception as e:
+                    streamlit.error(f"Failed to load file: {e}")
+
+    elif model_type_choise == "Neural Networks":
+        save_path = os.path.join("ModelFlow", "data-config", "saved-files")
+        os.makedirs(save_path, exist_ok=True)
+        saved_files = [
+            files for files in os.listdir(save_path) if files.endswith(".csv") or files.endswith(".xlsx")
+            ]
+        file_choices = ["Select file to build model"] + saved_files
+        selected_file = streamlit.selectbox("📂 Choose from your saved files:", file_choices, key="selectbox_model_builder_NN")
+        if selected_file == "Select file to build model":
+            streamlit.session_state["disable"] = True
+            streamlit.info("Please select file to continue.")
+        else:
+            try:
+                file_path = os.path.join(save_path, selected_file)
+                if selected_file.endswith(".csv"):
+                    records = pandas.read_csv(file_path)
+                elif selected_file.endswith(".xlsx"):
+                    records = pandas.read_excel(file_path)
+                if streamlit.checkbox(f"📄 Preview {selected_file}", key=f"preview_{selected_file}_model_builder_NN_object"):
+                    streamlit.write(records.head())
+            except Exception as e:
+                streamlit.error(f"Failed to load file: {e}")
