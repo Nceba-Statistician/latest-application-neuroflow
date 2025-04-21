@@ -618,7 +618,7 @@ elif selected_action_option == "Determine statistical distribution":
                         
 
         except Exception as e:
-            streamlit.error(f"Failed to load file: {e}") 
+            streamlit.error(f"Error could be on load file or selected field data types: {e}") 
 
 elif selected_action_option == "Imputation":
     save_path = os.path.join("ModelFlow", "data-config", "saved-files")
@@ -837,6 +837,75 @@ elif selected_action_option == "Model builder":
                         records = pandas.read_excel(file_path)
                     if streamlit.checkbox(f"📄 Preview {selected_file}", key=f"preview_{selected_file}_model_builder_Parametric_object"):
                         streamlit.write(records.head())
+                    Parametric_Methods_Focused_choice = streamlit.selectbox("Choose method",
+                                                                            ["", "Methods Focused on Means and Differences of Means",
+                                                                             "Methods Focused on Relationships Between Variables",
+                                                                             "Methods Focused on Categorical Data (often relying on asymptotic normality)",
+                                                                             "Other Parametric Methods"]
+                                                                            )
+                    if Parametric_Methods_Focused_choice == "":
+                        streamlit.session_state["disable"] = True
+                    elif Parametric_Methods_Focused_choice == "Methods Focused on Means and Differences of Means":
+                        Means_and_Differences_of_Means_choice = streamlit.selectbox("Choose your specific method",
+                                                                                    ["", "T-tests", "ANOVA", "ANCOVA"])
+                        if Means_and_Differences_of_Means_choice == "":
+                            streamlit.session_state["disable"] = True
+                        elif Means_and_Differences_of_Means_choice == "T-tests":
+                            with streamlit.expander("Student's t-tests"):
+                                streamlit.write("One-sample t-test: Comparing a single sample mean to a known value")
+                                streamlit.write("Independent samples t-test: Comparing means of two independent groups")
+                                streamlit.write("Paired samples t-test: Comparing means of two related groups, like before-and-after measurements")
+                        elif Means_and_Differences_of_Means_choice == "ANOVA":
+                            with streamlit.expander("Analysis of Variance"):
+                                streamlit.write("One-way ANOVA: Comparing means of three or more independent groups")
+                                streamlit.write("Two-way ANOVA: Examining the effects of two independent variables on a dependent variable")
+                                streamlit.write("Repeated measures ANOVA: Comparing means across multiple time points or conditions within the same subjects")
+                        elif Means_and_Differences_of_Means_choice == "ANCOVA":
+                            with streamlit.expander("Analysis of Covariance"):
+                                streamlit.write("Extends ANOVA by including one or more covariates to control for extraneous variables")    
+                    elif Parametric_Methods_Focused_choice == "Methods Focused on Relationships Between Variables":
+                        Relationships_Between_Variables_choice = streamlit.selectbox("Choose your specific method",
+                                                                                     ["", "Pearson Correlation",
+                                                                                      "Linear Regression",
+                                                                                      "Multiple Regression",
+                                                                                      "Polynomial Regression"]
+                                                                                     )
+                        if Relationships_Between_Variables_choice == "":
+                            streamlit.session_state["disable"] = True
+                        elif Relationships_Between_Variables_choice == "Pearson Correlation":
+                            with streamlit.expander("Description"):
+                                streamlit.write("Measures the linear relationship between two continuous variables")
+                        elif Relationships_Between_Variables_choice == "Linear Regression":
+                            with streamlit.expander("Description"):
+                                streamlit.write("Models the linear relationship between a dependent variable and one or more independent variables")
+                        elif Relationships_Between_Variables_choice == "Multiple Regression":
+                            with streamlit.expander("Description"):
+                                streamlit.write("Extends linear regression to include multiple independent variables")
+                        elif Relationships_Between_Variables_choice == "Polynomial Regression":
+                            with streamlit.expander("Description"):
+                                streamlit.write("Models non-linear relationships by including polynomial terms of the independent variable(s)")              
+                    elif Parametric_Methods_Focused_choice == "Methods Focused on Categorical Data (often relying on asymptotic normality)":
+                        Categorical_Data_choice = streamlit.selectbox("Choose your specific method", ["", "Chi-Square Tests"])
+                        if Categorical_Data_choice == "":
+                            streamlit.session_state["disable"] = True
+                        elif Categorical_Data_choice == "Chi-Square Tests":
+                            with streamlit.expander("Description"):
+                                streamlit.write("Goodness-of-fit test: Comparing observed frequencies to expected frequencies")
+                                streamlit.write("Test of independence: Examining the association between two categorical variables")
+                                streamlit.write("Test of homogeneity: Comparing the distribution of a categorical variable across two or more groups")    
+                    elif Parametric_Methods_Focused_choice == "Other Parametric Methods":
+                        Other_Parametric_Methods = streamlit.selectbox("Choose your specific method",
+                                                                       ["", "Z-tests", "Parametric Survival Analysis"]
+                                                                       )
+                        if Other_Parametric_Methods == "":
+                            streamlit.session_state["disable"] = True
+                        elif Other_Parametric_Methods == "Z-tests":
+                            with streamlit.expander("Description"):
+                                streamlit.write("Similar to t-tests but used when the population standard deviation is known or" \
+                                "the sample size is large (relying on the Central Limit Theorem)")
+                        elif Other_Parametric_Methods == "Parametric Survival Analysis":
+                            with streamlit.expander("Description"):
+                                streamlit.write("Methods like the exponential, Weibull, and log-normal models to analyze time-to-event data")                  
                 except Exception as e:
                     streamlit.error(f"Failed to load file: {e}")
 
