@@ -29,9 +29,10 @@ def sign_in(email, password):
 
 def sign_out():
     try:
-        user = supabase.auth.sign_out()
-        streamlit.session_state.user_email = None
+        supabase.auth.sign_out()
+        streamlit.session_state["user_email"] = None
         streamlit.rerun()
+
     except Exception as e:
         streamlit.error(f"Logout failed: {e}")
 
@@ -61,6 +62,10 @@ def main_app(user_email):
                        )
     streamlit.markdown("""<div class="title"> AI Architect application</div>""", unsafe_allow_html=True)
 
+    landing_page = streamlit.Page(
+        "landing_page.py", title="landing page", icon=":material/menu:", default=True
+        )
+    
     data_upload = streamlit.Page(
         "ModelFlow/data-config/data-upload.py", title="Data upload", icon=":material/upload:", default=False
         )
@@ -91,18 +96,13 @@ def main_app(user_email):
     search = streamlit.Page(
         "Tools/search.py", title="Search", icon=":material/search:", default=False
         )
-    
-    data_config_list = ("Data Configuration", [data_upload, manage_files])
-    if data_config_list == "data_upload":
-        data_upload,
-    elif data_config_list == "data_conn":
-        manage_files
 
     streamlit.navigation({
-        "Model Flow": [data_upload, manage_files, neuro_flow, model_history],
+        "Model Flow": [landing_page, data_upload, manage_files, neuro_flow, model_history],
         "Reports": [dashboard, bug_reports, system_alerts],
         "Tools": [data_migration, data_cleaning, search]
         }).run()
+    
     streamlit.sidebar.write("Currently logged in as:")
     streamlit.sidebar.caption(f"{user_email}")
     if streamlit.sidebar.button("Sign Out"):
@@ -110,9 +110,13 @@ def main_app(user_email):
 
 def auth_screen():
     streamlit.title("Streamlit and Supabase Auth App")
+    landing_for_auth = streamlit.Page("landing_page.py", title="Landing Page", icon=":material/menu:")
     Options = streamlit.selectbox("Choose action", ["", "login", "sign up", "forgot password"])
     email = streamlit.text_input("email")
     password = streamlit.text_input("password", type="password")
+    streamlit.navigation({
+        "Home": [landing_for_auth]
+        }).run()
 
     if Options == "":
         streamlit.session_state["disable"] = True
@@ -149,14 +153,9 @@ def auth_screen():
 
 if "user_email" not in streamlit.session_state:
     streamlit.session_state["user_email"] = None
+    
 
 if streamlit.session_state["user_email"]:
     main_app(streamlit.session_state["user_email"])
 else:
     auth_screen()
-
-        
-    
-    
-
-
