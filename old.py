@@ -109,60 +109,49 @@ def main_app(user_email):
         sign_out()
 
 def auth_screen():
-    streamlit.markdown("""<div class="block-container">Welcome</div>""", unsafe_allow_html=True)
+    streamlit.set_page_config(page_title="Neuroflow log in", layout="centered")
+    streamlit.markdown("Welcome")
+    streamlit.markdown("Login to neuroflow application")
     landing_for_auth = streamlit.Page("landing_page.py", title="Landing Page", icon=":material/menu:")
-    email = streamlit.text_input("Email", key="login_email", placeholder="Enter your email")
-    password = streamlit.text_input("Password", key="login_password", placeholder="Enter your password", type="password")
-    if streamlit.button("Continue"):
-        user = sign_in(email, password)
-        if user and user.user:
-            if user.user.email:
-                streamlit.session_state["user_email"] = user.user.email
-                streamlit.success(f"Welcome back {email}")
-                streamlit.rerun()
-            else:
-                streamlit.warning("Login successful, but email not found in response.")
-        else:
-            streamlit.write("")
+    Options = streamlit.selectbox("Choose action", ["", "login", "sign up", "forgot password"])
+    email = streamlit.text_input("email", placeholder="Enter your email")
+    password = streamlit.text_input("password", placeholder="Enter your password", type="password")
+    streamlit.navigation({
+        "Home": [landing_for_auth]
+        }).run()
 
-    streamlit.markdown("Don't have an account?", unsafe_allow_html=True)
-    if streamlit.checkbox("Sign up", key="Register"):
-        email = streamlit.text_input("Email", key="signup_email", placeholder="Enter your email")
-        password = streamlit.text_input("Password", key="signup_password", placeholder="Enter your password", type="password")
+    if Options == "":
+        streamlit.session_state["disable"] = True
+    elif Options == "sign up":
         if streamlit.button("Register"):
             user = sign_up(email, password)
-            if user and user.user:
+            if user and user.user: 
                 if user.user.email:
                     streamlit.success("Registration successful. Please log in ...")
             elif user:
                 streamlit.warning("Registration successful, but email not found in response.")
             else:
                 streamlit.error("Registration failed.")
-    streamlit.markdown("---")
-    streamlit.markdown("Forgot password?")
-    if streamlit.checkbox("Reset password"):
+    elif Options == "login":
+        if streamlit.button("Login"): 
+            user = sign_in(email, password)
+            if user and user.user: 
+                if user.user.email:
+                    streamlit.session_state["user_email"] = user.user.email
+                    streamlit.success(f"Welcome back {email}")
+                    streamlit.rerun()
+                else:
+                    streamlit.warning("Login successful, but email not found in response.")
+            else:
+                streamlit.write("")
+    elif Options == "forgot password":
         streamlit.info("Enter your email address below to receive a password reset link.")
-        reset_email = streamlit.text_input("Email for password reset:", placeholder="Enter your email")
+        reset_email = streamlit.text_input("Email for password reset:")
         if streamlit.button("Send Reset Link"):
             if reset_email:
                 forgot_password(reset_email)
             else:
-                streamlit.warning("Please enter your email address.") 
-    streamlit.markdown(
-        """
-       <style>
-    .block-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        color: white !important
-       </style>
-     """, unsafe_allow_html=True
-    )    
-    streamlit.navigation({
-        "Home": [landing_for_auth]
-        }).run()
+                streamlit.warning("Please enter your email address.")        
 
 if "user_email" not in streamlit.session_state:
     streamlit.session_state["user_email"] = None
