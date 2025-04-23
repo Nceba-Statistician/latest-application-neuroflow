@@ -11,4 +11,5 @@ openpyxl
 seaborn
 statsmodels
 scipy
+supabase
 
