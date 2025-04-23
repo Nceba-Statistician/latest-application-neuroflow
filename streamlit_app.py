@@ -113,7 +113,7 @@ def auth_screen():
     landing_for_auth = streamlit.Page("landing_page.py", title="Landing Page", icon=":material/menu:")
     email = streamlit.text_input("Email", key="login_email", placeholder="Enter your email")
     password = streamlit.text_input("Password", key="login_password", placeholder="Enter your password", type="password")
-    if streamlit.button("Continue"):
+    if streamlit.button("Login"):
         user = sign_in(email, password)
         if user and user.user:
             if user.user.email:
