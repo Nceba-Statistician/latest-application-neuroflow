@@ -7,6 +7,8 @@ from sklearn.model_selection import train_test_split
 from matplotlib import pyplot
 from supabase import create_client, Client
 
+streamlit.set_page_config(layout="wide")
+
 supabase_url = streamlit.secrets["SUPABASE_URL"] 
 supabase_key = streamlit.secrets["SUPABASE_KEY"]
 supabase: Client = create_client(supabase_url, supabase_key)
@@ -63,7 +65,7 @@ def main_app(user_email):
     streamlit.markdown("""<div class="title"> AI Architect application</div>""", unsafe_allow_html=True)
 
     landing_page = streamlit.Page(
-        "landing_page.py", title="landing page", icon=":material/menu:", default=True
+        "landing_page.py", title="neuro flow", icon=":material/computer:", default=True
         )
     
     data_upload = streamlit.Page(
