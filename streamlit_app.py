@@ -1,4 +1,4 @@
-import streamlit, pandas, numpy, datetime, json, requests, pyodbc, os
+import streamlit, pandas, numpy, datetime, json, requests, pyodbc, os, altair 
 from tensorflow.python.keras.models import Sequential
 from tensorflow.python.keras.layers import Input, Dense, Dropout
 from tensorflow.python.keras.callbacks import TensorBoard
@@ -6,8 +6,11 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from matplotlib import pyplot
 from supabase import create_client, Client
+from plotly import express
 
-streamlit.set_page_config(layout="wide")
+streamlit.set_page_config(page_title="neuroflow application", layout="wide")
+
+altair.theme.enable("carbong90")
 
 supabase_url = streamlit.secrets["SUPABASE_URL"] 
 supabase_key = streamlit.secrets["SUPABASE_KEY"]
@@ -62,7 +65,7 @@ def main_app(user_email):
     streamlit.markdown(""" <style> .emotion-cache {vertical-align: middle; overflow: hidden; color: inherit; fill: currentcolor; display: inline-flex; -webkit-box-align: center; align-items: center; font-size: 1.25rem; width: 1.25rem; height: 1.25rem; flex-shrink: 0; } </style>""",
                        unsafe_allow_html=True
                        )
-    streamlit.markdown("""<div class="title"> AI Architect application</div>""", unsafe_allow_html=True)
+    # streamlit.markdown("""<div class="title"> AI Architect application</div>""", unsafe_allow_html=True)
 
     landing_page = streamlit.Page(
         "landing_page.py", title="neuro flow", icon=":material/computer:", default=True
@@ -80,14 +83,11 @@ def main_app(user_email):
     neuro_flow = streamlit.Page(
         "ModelFlow/neuro-flow.py", title="Neuro Flow", icon=":material/analytics:", default=False
         )
-    bug_reports = streamlit.Page(
-        "Reports/bug-reports.py", title="Bug Reports", icon=":material/report:", default=False
+    visuals = streamlit.Page(
+        "Reports/visuals.py", title="Visuals", icon=":material/analytics:", default=False
         )
     dashboard = streamlit.Page(
         "Reports/dashboard.py", title="Dashboard", icon=":material/dashboard:", default=False
-        )
-    system_alerts = streamlit.Page(
-        "Reports/system-alerts.py", title="System Alerts", icon=":material/warning:", default=False
         )
     data_cleaning = streamlit.Page(
         "Tools/data-cleaning.py", title="Data Cleaning", icon=":material/cleaning:", default=False
@@ -101,7 +101,7 @@ def main_app(user_email):
 
     streamlit.navigation({
         "Model Flow": [landing_page, data_upload, manage_files, neuro_flow, model_history],
-        "Reports": [dashboard, bug_reports, system_alerts],
+        "Reports": [dashboard, visuals],
         "Tools": [data_migration, data_cleaning, search]
         }).run()
     

@@ -952,5 +952,112 @@ elif selected_action_option == "Model builder":
                     records = pandas.read_excel(file_path)
                 if streamlit.checkbox(f"📄 Preview {selected_file}", key=f"preview_{selected_file}_model_builder_NN_object"):
                     streamlit.write(records.head())
+
+                NN_options = streamlit.selectbox("Select neural network architecture",
+                                                 ["", "FNN – Feedforward Neural Network",
+                                                  "CNN – Convolutional Neural Network",
+                                                  "RNN – Recurrent Neural Network",
+                                                  "LSTM – Long Short-Term Memory Network"]
+                                                 )
+                if NN_options == "":
+                    streamlit.session_state["disable"] = True
+                elif NN_options == "FNN – Feedforward Neural Network":
+                    columns_list = records.columns.tolist()
+                    target_column = streamlit.selectbox("Select target column", [""] + columns_list, key="target")
+                    predictor_columns = streamlit.multiselect("Select predictor columns", columns_list, key="predictors")
+                    if len(predictor_columns) > 0 and target_column:
+                        if target_column in predictor_columns:
+                            streamlit.warning("Target column cannot be one of the predictor columns.")
+                        else:
+                            predictors_col = records[predictor_columns]
+                            target_col = records[predictor_columns].values.reshape(-1, 1)
+                            test_size_percentage = streamlit.number_input(
+                                "Add test size (e.g., 0.2)", min_value=0.0, max_value=1.0, step=0.1, format="%.1f"
+                                )
+                            First_dense_value = streamlit.number_input(
+                                "Add First Dense (e.g., 64)", min_value=1, step=1, format="%d"
+                                )
+                            Second_dense_value = streamlit.number_input(
+                                "Add second Dense (e.g., 32)", min_value=1, step=1, format="%d"
+                                )
+                            Dropout_value = streamlit.number_input(
+                                "Add Dropout (e.g., 0.2)", min_value=0.0, max_value=1.0, step=0.1, format="%.1f"
+                                )
+                            Activation_function = streamlit.selectbox("Choose activation function", ["", "relu"])
+                            if test_size_percentage is not None and 0 < test_size_percentage <= 1 and First_dense_value > 0 and Second_dense_value > 0 and 0 <= Dropout_value < 1 and Activation_function:
+                                X_train, X_test, y_train, y_test = train_test_split(predictors_col, target_col, test_size=test_size_percentage, random_state=42)                   
+                                scaler = StandardScaler()
+                                X_train = scaler.fit_transform(X_train)
+                                X_test = scaler.transform(X_test)
+                                
+                                model = Sequential([
+                                    Input(shape=(X_train.shape[1], )),
+                                    Dense(First_dense_value, activation=Activation_function),
+                                    Dropout(Dropout_value),
+                                    Dense(Second_dense_value, activation=Activation_function),
+                                    Dropout(Dropout_value),
+                                    Dense(1, activation=None, name="output_layer")
+                                    ])
+                                
+                                model.compile(optimizer="Adam", loss="mean_squared_error", metrics=["mae"])
+                                log_dir = "logs/" + datetime.datetime.now().strftime("%d_%m_%Y - %H_%M_%S")
+                                tensorboard_callback = TensorBoard(log_dir=log_dir, histogram_freq=1)
+
+                                if streamlit.button("Train Model"):
+
+                                    progress_bar = streamlit.progress(0)
+                                    status_text = streamlit.empty()
+
+                                    history = model.fit(
+                                        X_train, y_train,
+                                        epochs=100,
+                                        callbacks=[tensorboard_callback],
+                                        verbose=0  # Suppressed Keras output
+                                        )
+                                    for i in range(100):
+                                        progress_bar.progress((i + 1) / 100)
+                                        status_text.text(f"Training in progress... Epoch {i+1}/100")
+                                        status_text.success("Training complete!")
+
+                                    streamlit.success("Training Loss Plot")
+                                    pyplot.figure(figsize=(8, 5))
+                                    pyplot.plot(history.history["loss"], label="Training Loss")
+                                    pyplot.xlabel("Epochs")
+                                    pyplot.ylabel("Mean Squared Error")
+                                    pyplot.title("Training Loss vs Epochs")
+                                    pyplot.legend()
+                                    streamlit.pyplot()
+
+                                    y_pred = model.predict(X_test)
+                                    
+                                    streamlit.success("Actual vs Predicted Values")
+                                    pyplot.figure(figsize=(8, 5))
+                                    pyplot.scatter(y_test, y_pred, alpha=0.6)
+                                    pyplot.xlabel("Actual Values")
+                                    pyplot.ylabel("Predicted Values")
+                                    pyplot.title("Actual vs Predicted")
+                                    pyplot.legend()
+                                    streamlit.pyplot()
+                                    
+                            elif test_size_percentage is not None and (test_size_percentage <= 0 or test_size_percentage > 1):
+                                streamlit.warning("Test size should be between 0.0 and 1.0 (exclusive of 0).")
+                            elif First_dense_value <= 0 or Second_dense_value <= 0:
+                                streamlit.warning("Dense layer values should be greater than 0.")
+                            elif Dropout_value < 0 or Dropout_value >= 1:
+                                streamlit.warning("Dropout value should be between 0.0 and less than 1.0.")
+                            elif not Activation_function:
+                                streamlit.warning("Please choose an activation function.")
+
+                    elif len(predictor_columns) < 0 and target_column:
+                        streamlit.warning("Please select at least one predictor column.")
+
+
+                elif NN_options == "CNN – Convolutional Neural Network":
+                    "" 
+                elif NN_options == "RNN – Recurrent Neural Network":
+                    "" 
+                elif NN_options == "LSTM – Long Short-Term Memory Network":
+                    ""                                           
+
             except Exception as e:
                 streamlit.error(f"Failed to load file: {e}")
