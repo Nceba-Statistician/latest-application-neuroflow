@@ -1,0 +1,21 @@
+{
+    "sqltools.connections": [
+        {
+            "connectionTimeout": 15,
+            "mssqlOptions": {
+                "appName": "SQLTools",
+                "useUTC": true,
+                "encrypt": true,
+                "trustServerCertificate": true
+            },
+            "previewLimit": 50,
+            "server": "localhost\\DEMODEV2022",
+            "port": 1433,
+            "driver": "MSSQL",
+            "database": "sales",
+            "username": "neuroflow",
+            "password": "roots",
+            "name": "localhost_sql_server"
+        }
+    ]
+}

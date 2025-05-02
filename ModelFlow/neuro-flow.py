@@ -4,7 +4,7 @@ from keras.api.layers import  Dense, Dropout, Input
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from matplotlib import pyplot
-from keras.api.callbacks import TensorBoard
+from tensorflow.python.keras.callbacks import TensorBoard, LambdaCallback
 from scipy import stats
 from statsmodels import api
 import datetime
@@ -984,6 +984,7 @@ elif selected_action_option == "Model builder":
                                 "Add Dropout (e.g., 0.2)", min_value=0.0, max_value=1.0, step=0.1, format="%.1f"
                                 )
                             Activation_function = streamlit.selectbox("Choose activation function", ["", "relu"])
+                            Optional_date = streamlit.selectbox("Select date (Optional) for time steps", [""] + columns_list, key="time steps")
                             if test_size_percentage is not None and 0 < test_size_percentage <= 1 and First_dense_value > 0 and Second_dense_value > 0 and 0 <= Dropout_value < 1 and Activation_function:
                                 X_train, X_test, y_train, y_test = train_test_split(predictors_col, target_col, test_size=test_size_percentage, random_state=42)                   
                                 scaler = StandardScaler()
@@ -1007,43 +1008,48 @@ elif selected_action_option == "Model builder":
 
                                     progress_bar = streamlit.progress(0)
                                     status_text = streamlit.empty()
+                                    epochs = 100
+                                    
+                                    def update_progress(epoch, logs):
+                                        progress = (epoch + 1) / epochs
+                                        progress_bar.progress(progress)
+                                        status_text.text(f"Training in progress... Epoch {epoch + 1}/{epochs}")
+                                        if epoch == epochs - 1:
+                                            status_text.success("Training complete!")
+
+                                    progress_callback = LambdaCallback(on_epoch_end=update_progress)    
 
                                     history = model.fit(
                                         X_train, y_train,
-                                        epochs=100,
-                                        callbacks=[tensorboard_callback],
+                                        epochs=epochs,
+                                        callbacks=[tensorboard_callback, progress_callback],
                                         verbose=0  # Suppressed Keras output
                                         )
                                     for i in range(100):
                                         progress_bar.progress((i + 1) / 100)
                                         status_text.text(f"Training in progress... Epoch {i+1}/100")
                                         status_text.success("Training complete!")
-                                    
-                                    fig, ax = pyplot.subplots(figsize=(6, 4))
-                                    ax.plot(history.history["loss"], label="Training Loss")
-                                    ax.set_xlabel("Epochs")
-                                    ax.set_ylabel("Mean Squared Error")
-                                    ax.set_title("Training Loss vs Epochs")
-                                    ax.legend()
-                                    streamlit.pyplot(fig)
-                                    
-                                    y_pred = model.predict(X_test)
-                                    y_test_flat = y_test.flatten()
-                                    y_pred_flat = y_pred.flatten()
-                                    observed_values = y_test_flat
-                                    predicted_values = y_pred_flat
-                                    time_steps = numpy.arange(len(observed_values))
-                                    
-                                    fig, ax = pyplot.subplots(figsize=(6, 4))
-                                    ax.plot(time_steps, observed_values, label='Observed', marker='o', linestyle='-')
-                                    ax.plot(time_steps, predicted_values, label='Predicted', marker='x', linestyle='--')
-                                    ax.set_xlabel("Time Steps (or Index)")
-                                    ax.set_ylabel("Value")
-                                    ax.set_title("Observed vs. Predicted Values")
-                                    ax.legend()
-                                    ax.grid(True)
-                                    streamlit.pyplot(fig)
 
+                                    streamlit.success("Training Loss Plot")
+                                    pyplot.figure(figsize=(8, 5))
+                                    pyplot.plot(history.history["loss"], label="Training Loss")
+                                    pyplot.xlabel("Epochs")
+                                    pyplot.ylabel("Mean Squared Error")
+                                    pyplot.title("Training Loss vs Epochs")
+                                    pyplot.legend()
+                                    streamlit.pyplot()
+
+                                    y_pred = model.predict(X_test)
+                                    
+                                    streamlit.success("Actual vs Predicted Values")
+                                    pyplot.figure(figsize=(8, 5))
+                                    pyplot.scatter(y_test, y_pred, alpha=0.6)
+                                    pyplot.xlabel("Actual Values")
+                                    pyplot.ylabel("Predicted Values")
+                                    pyplot.title("Actual vs Predicted")
+                                    pyplot.legend()
+                                    streamlit.pyplot()
+                                    
                             elif test_size_percentage is not None and (test_size_percentage <= 0 or test_size_percentage > 1):
                                 streamlit.warning("Test size should be between 0.0 and 1.0 (exclusive of 0).")
                             elif First_dense_value <= 0 or Second_dense_value <= 0:
@@ -1066,3 +1072,4 @@ elif selected_action_option == "Model builder":
 
             except Exception as e:
                 streamlit.error(f"Failed to load file: {e}")
+                

@@ -1,10 +1,4 @@
 import streamlit, os, pandas, numpy, datetime, json, requests, pyodbc
-from tensorflow.python.keras.models import Sequential
-from tensorflow.python.keras.layers import Input, Dense, Dropout
-from tensorflow.python.keras.callbacks import TensorBoard
-from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import train_test_split
-from matplotlib import pyplot
 
 getdatachoices = [
         "select your option", "Upload CSV", "Upload Excel", "Add API", "Connect to SQL"

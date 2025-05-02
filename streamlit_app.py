@@ -1,7 +1,4 @@
 import streamlit, pandas, numpy, datetime, json, requests, pyodbc, os, altair 
-from tensorflow.python.keras.models import Sequential
-from tensorflow.python.keras.layers import Input, Dense, Dropout
-from tensorflow.python.keras.callbacks import TensorBoard
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from matplotlib import pyplot
@@ -10,7 +7,6 @@ from plotly import express
 
 streamlit.set_page_config(page_title="neuroflow application", layout="wide")
 
-altair.theme.enable("carbong90")
 
 supabase_url = streamlit.secrets["SUPABASE_URL"] 
 supabase_key = streamlit.secrets["SUPABASE_KEY"]
@@ -111,7 +107,7 @@ def main_app(user_email):
         sign_out()
 
 def auth_screen():
-    streamlit.markdown("""<div class="block-container">Welcome</div>""", unsafe_allow_html=True)
+    streamlit.markdown("""<div style="display: flex; justify-content: center; align-items: center">Welcome</div>""", unsafe_allow_html=True)
     landing_for_auth = streamlit.Page("landing_page.py", title="Landing Page", icon=":material/menu:")
     email = streamlit.text_input("Email", key="login_email", placeholder="Enter your email")
     password = streamlit.text_input("Password", key="login_password", placeholder="Enter your password", type="password")
@@ -127,7 +123,7 @@ def auth_screen():
         else:
             streamlit.write("")
 
-    streamlit.markdown("Don't have an account?", unsafe_allow_html=True)
+    streamlit.markdown("""<div style="display: flex; justify-content: center; align-items: center">Don't have an account?</div>""", unsafe_allow_html=True)
     if streamlit.checkbox("Sign up", key="Register"):
         email = streamlit.text_input("Email", key="signup_email", placeholder="Enter your email")
         password = streamlit.text_input("Password", key="signup_password", placeholder="Enter your password", type="password")
@@ -141,7 +137,7 @@ def auth_screen():
             else:
                 streamlit.error("Registration failed.")
     streamlit.markdown("---")
-    streamlit.markdown("Forgot password?")
+    streamlit.markdown("""<div style="display: flex; justify-content: center; align-items: center">Forgot password?</div>""", unsafe_allow_html=True)
     if streamlit.checkbox("Reset password"):
         streamlit.info("Enter your email address below to receive a password reset link.")
         reset_email = streamlit.text_input("Email for password reset:", placeholder="Enter your email")
