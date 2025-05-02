@@ -4,7 +4,7 @@ from keras.api.layers import  Dense, Dropout, Input
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from matplotlib import pyplot
-from tensorflow.python.keras.callbacks import TensorBoard, LambdaCallback
+from  keras.api.callbacks import TensorBoard, LambdaCallback
 from scipy import stats
 from statsmodels import api
 import datetime
