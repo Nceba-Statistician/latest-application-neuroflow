@@ -67,9 +67,9 @@ elif selected_action_option == "Select model fields":
     saved_files = [
         files for files in os.listdir(save_path) if files.endswith(".csv") or files.endswith(".xlsx")
         ]
-    file_choices = ["Select file to adjust fields"] + saved_files
-    selected_file = streamlit.selectbox("📂 Choose from your saved files:", file_choices, key="selectbox_gen")
-    if selected_file == "Select file to adjust fields":
+    file_choices = [""] + saved_files
+    selected_file = streamlit.selectbox("📂 Select file to adjust fields:", file_choices, key="selectbox_gen")
+    if selected_file == "":
         streamlit.session_state["disable"] = True
         streamlit.info("Please select file to continue.")
     else:
@@ -119,9 +119,9 @@ elif selected_action_option == "Transform field values":
     saved_files = [
         files for files in os.listdir(save_path) if files.endswith(".csv") or files.endswith(".xlsx")
         ]
-    file_choices = ["Select file to transform"] + saved_files
-    selected_file = streamlit.selectbox("📂 Choose from your saved files:", file_choices, key="selectbox_trans")
-    if selected_file == "Select file to transform":
+    file_choices = [""] + saved_files
+    selected_file = streamlit.selectbox("📂 Select file to transform:", file_choices, key="selectbox_trans")
+    if selected_file == "":
         streamlit.session_state["disable"] = True
         streamlit.info("Please select file to continue.")
     else:
@@ -181,9 +181,9 @@ elif selected_action_option == "Update field data types":
     saved_files = [
         files for files in os.listdir(save_path) if files.endswith(".csv") or files.endswith(".xlsx")
         ]
-    file_choices = ["Select file to update data types"] + saved_files
-    selected_file = streamlit.selectbox("📂 Choose from your saved files:", file_choices, key="selectbox_trans")
-    if selected_file == "Select file to update data types":
+    file_choices = [""] + saved_files
+    selected_file = streamlit.selectbox("📂 Select file to update data types:", file_choices, key="selectbox_trans")
+    if selected_file == "":
         streamlit.session_state["disable"] = True
         streamlit.info("Please select file to continue.")
     else:
@@ -327,9 +327,9 @@ elif selected_action_option == "Determine statistical distribution":
     saved_files = [
         files for files in os.listdir(save_path) if files.endswith(".csv") or files.endswith(".xlsx")
         ]
-    file_choices = ["Select file to transform"] + saved_files
-    selected_file = streamlit.selectbox("📂 Choose from your saved files:", file_choices, key="selectbox_dist")
-    if selected_file == "Select file to transform":
+    file_choices = [""] + saved_files
+    selected_file = streamlit.selectbox("📂 Select file to transform:", file_choices, key="selectbox_dist")
+    if selected_file == "":
         streamlit.session_state["disable"] = True
         streamlit.info("Please select file to continue.")
     else:
@@ -626,9 +626,9 @@ elif selected_action_option == "Imputation":
     saved_files = [
         files for files in os.listdir(save_path) if files.endswith(".csv") or files.endswith(".xlsx")
         ]
-    file_choices = ["Select file to impute"] + saved_files
-    selected_file = streamlit.selectbox("📂 Choose from your saved files:", file_choices, key="selectbox_impute")
-    if selected_file == "Select file to impute":
+    file_choices = [""] + saved_files
+    selected_file = streamlit.selectbox("📂 Select file to impute:", file_choices, key="selectbox_impute")
+    if selected_file == "":
         streamlit.session_state["disable"] = True
         streamlit.info("Please select file to continue.")
     else:
@@ -740,9 +740,9 @@ elif selected_action_option == "Correlation Matrix":
     saved_files = [
         files for files in os.listdir(save_path) if files.endswith(".csv") or files.endswith(".xlsx")
         ]
-    file_choices = ["Select file to Calculate Correlation Matrix"] + saved_files
-    selected_file = streamlit.selectbox("📂 Choose from your saved files:", file_choices, key="selectbox_dist")
-    if selected_file == "Select file to Calculate Correlation Matrix":
+    file_choices = [""] + saved_files
+    selected_file = streamlit.selectbox("📂 Select file to Calculate Correlation Matrix:", file_choices, key="selectbox_dist")
+    if selected_file == "":
         streamlit.session_state["disable"] = True
         streamlit.info("Please select file to continue.")
     else:
@@ -823,9 +823,9 @@ elif selected_action_option == "Model builder":
             saved_files = [
                 files for files in os.listdir(save_path) if files.endswith(".csv") or files.endswith(".xlsx")
                 ]
-            file_choices = ["Select file to build model"] + saved_files
-            selected_file = streamlit.selectbox("📂 Choose from your saved files:", file_choices, key="selectbox_model_builder_Parametric")
-            if selected_file == "Select file to build model":
+            file_choices = [""] + saved_files
+            selected_file = streamlit.selectbox("📂 Select file to build model:", file_choices, key="selectbox_model_builder_Parametric")
+            if selected_file == "":
                 streamlit.session_state["disable"] = True
                 streamlit.info("Please select file to continue.")
             else:
@@ -938,9 +938,9 @@ elif selected_action_option == "Model builder":
         saved_files = [
             files for files in os.listdir(save_path) if files.endswith(".csv") or files.endswith(".xlsx")
             ]
-        file_choices = ["Select file to build model"] + saved_files
-        selected_file = streamlit.selectbox("📂 Choose from your saved files:", file_choices, key="selectbox_model_builder_NN")
-        if selected_file == "Select file to build model":
+        file_choices = [""] + saved_files
+        selected_file = streamlit.selectbox("📂 Select file to build model:", file_choices, key="selectbox_model_builder_NN")
+        if selected_file == "":
             streamlit.session_state["disable"] = True
             streamlit.info("Please select file to continue.")
         else:
@@ -970,7 +970,7 @@ elif selected_action_option == "Model builder":
                             streamlit.warning("Target column cannot be one of the predictor columns.")
                         else:
                             predictors_col = records[predictor_columns]
-                            target_col = records[predictor_columns].values.reshape(-1, 1)
+                            target_col = records[target_column].values.reshape(-1, 1)
                             test_size_percentage = streamlit.number_input(
                                 "Add test size (e.g., 0.2)", min_value=0.0, max_value=1.0, step=0.1, format="%.1f"
                                 )

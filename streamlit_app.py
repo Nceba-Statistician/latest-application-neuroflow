@@ -29,7 +29,7 @@ def sign_in(email, password):
         user = supabase.auth.sign_in_with_password({"email": email, "password": password})
         return user
     except Exception as e:
-        streamlit.error(f"Login failed: Please confirm your email address. {e}")
+        streamlit.error(f"Login failed: {e}. Or possibly you have not yet confirmed your email address.")
         return None 
 
 def sign_out():
@@ -150,18 +150,7 @@ def auth_screen():
                 forgot_password(reset_email)
             else:
                 streamlit.warning("Please enter your email address.") 
-    streamlit.markdown(
-        """
-       <style>
-    .block-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        color: white !important
-       </style>
-     """, unsafe_allow_html=True
-    )    
+  
     streamlit.navigation({
         "Home": [landing_for_auth]
         }).run()
