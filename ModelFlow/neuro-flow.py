@@ -1025,30 +1025,49 @@ elif selected_action_option == "Model builder":
                                         callbacks=[tensorboard_callback, progress_callback],
                                         verbose=0  # Suppressed Keras output
                                         )
-                                    for i in range(100):
-                                        progress_bar.progress((i + 1) / 100)
-                                        status_text.text(f"Training in progress... Epoch {i+1}/100")
-                                        status_text.success("Training complete!")
-
-                                    streamlit.success("Training Loss Plot")
-                                    pyplot.figure(figsize=(8, 5))
-                                    pyplot.plot(history.history["loss"], label="Training Loss")
-                                    pyplot.xlabel("Epochs")
-                                    pyplot.ylabel("Mean Squared Error")
-                                    pyplot.title("Training Loss vs Epochs")
-                                    pyplot.legend()
-                                    streamlit.pyplot()
 
                                     y_pred = model.predict(X_test)
-                                    
-                                    streamlit.success("Actual vs Predicted Values")
-                                    pyplot.figure(figsize=(8, 5))
-                                    pyplot.scatter(y_test, y_pred, alpha=0.6)
-                                    pyplot.xlabel("Actual Values")
-                                    pyplot.ylabel("Predicted Values")
-                                    pyplot.title("Actual vs Predicted")
-                                    pyplot.legend()
-                                    streamlit.pyplot()
+
+                                    fig, ax = pyplot.subplots(figsize=(6, 4))
+                                    ax.plot(history.history["loss"], label="Training Loss")
+                                    ax.set_xlabel("Epochs")
+                                    ax.set_ylabel("Mean Squared Error")
+                                    ax.set_title("Training Loss vs Epochs")
+                                    ax.legend()
+                                    streamlit.pyplot(fig)
+
+                                    if Optional_date == "":
+                                        observed_values = y_test.flatten()
+                                        predicted_values = y_pred.flatten()
+                                        time_steps = numpy.arange(len(observed_values))
+                                        
+                                        fig, ax = pyplot.subplots(figsize=(6, 4))
+                                        ax.plot(time_steps, observed_values, label='Observed', marker='o', linestyle='-')
+                                        ax.plot(time_steps, predicted_values, label='Predicted', marker='x', linestyle='--')
+                                        ax.set_xlabel("Time Steps (or Index)")
+                                        ax.set_ylabel("Value")
+                                        ax.set_title("Observed vs. Predicted Values")
+                                        ax.legend()
+                                        ax.grid(True)
+                                        streamlit.pyplot(fig)
+
+                                    else:
+                                        time_steps = records[Optional_date].values.flatten()[-len(y_test):]
+                                        observed_values = y_test.flatten()
+                                        predicted_values = y_pred.flatten()
+                                        if len(time_steps) == len(observed_values):
+                                            fig, ax = pyplot.subplots(figsize=(6, 4))
+                                            ax.plot(time_steps, observed_values, label='Observed', marker='o', linestyle='-')
+                                            ax.plot(time_steps, predicted_values, label='Predicted', marker='x', linestyle='--')
+                                            ax.set_xlabel(Optional_date)
+                                            ax.set_ylabel("Value")
+                                            ax.set_title("Observed vs. Predicted Values Over Time")
+                                            ax.legend()
+                                            ax.grid(True)
+                                            streamlit.pyplot(fig)
+                                        else:
+                                            streamlit.warning(f"The length of the selected date column ('{Optional_date}') does not match the length of the test data. Please check your data and date selection.")
+
                                     
                             elif test_size_percentage is not None and (test_size_percentage <= 0 or test_size_percentage > 1):
                                 streamlit.warning("Test size should be between 0.0 and 1.0 (exclusive of 0).")
