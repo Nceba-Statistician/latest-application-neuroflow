@@ -1032,8 +1032,8 @@ elif selected_action_option == "Model builder":
                                     r2 = r2_score(y_test, y_pred)
 
                                     metrics = [{
-                                        "Metrics": ["Mean Square Error", "R-Squared"],
-                                        "": [f"{mse:.4f}", f"{r2:.4f}"]
+                                        "Mean Square Error": [f"{mse:.4f}"],
+                                        "R-Squared": [f"{r2:.4f}"]
                                     }]
                                     streamlit.dataframe(metrics, hide_index=True)
 
