@@ -1037,6 +1037,19 @@ elif selected_action_option == "Model builder":
                                     }]
                                     streamlit.dataframe(metrics, hide_index=True)
 
+                                    col_mse, col_r = streamlit.columns(2)
+
+                                    with col_mse:
+                                        streamlit.write("Mean Square Error measures prediction accuracy. " \
+                                        "tells us how far, on average, our model's predictions are from the true values." \
+                                        "A lower MSE indicates better performance," \
+                                        "with the metric being particularly sensitive to large prediction errors.")
+                                    
+                                    with col_r:
+                                        streamlit.write("1 means the model perfectly explains the variance.")
+                                        streamlit.write("0 means the model explains none of the variance.")
+
+
                                     fig, ax = pyplot.subplots(figsize=(6, 4))
                                     ax.plot(history.history["loss"], label="Training Loss")
                                     ax.set_xlabel("Epochs")
