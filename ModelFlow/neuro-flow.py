@@ -1036,13 +1036,11 @@ elif selected_action_option == "Model builder":
                                         "R-Squared": [f"{r2:.4f}"]
                                     }]
                                     streamlit.dataframe(metrics, hide_index=True)
-                                    metrics_description = [{
+                                    metrics_description = pandas.dataframe([{
                                         "Mean Square Error": ["Mean Square Error measures prediction accuracy. It tells us how far, on average, our model's predictions are from the true values. A lower MSE indicates better performance, with the metric being particularly sensitive to large prediction errors."],
                                         "R-Squared": ["1 means the model perfectly explains the variance. And 0 means the model explains none of the variance."]
-                                    }]
-                                    _metrics_description = pandas.dataframe(metrics_description)
-                                    metrics_description_ = _metrics_description.set_index("Mean Square Error")
-                                    streamlit.table(metrics_description_)
+                                    }])
+                                    streamlit.markdown(metrics_description.style.hide(axis="index").to_html(), unsafe_allow_html=True)
 
                                     fig, ax = pyplot.subplots(figsize=(6, 4))
                                     ax.plot(history.history["loss"], label="Training Loss")
