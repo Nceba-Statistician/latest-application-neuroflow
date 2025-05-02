@@ -4,13 +4,13 @@ from keras.api.layers import  Dense, Dropout, Input
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from matplotlib import pyplot
-from  keras.api.callbacks import TensorBoard, LambdaCallback
+from keras.api.callbacks import TensorBoard, LambdaCallback
 from scipy import stats
 from statsmodels import api
 import datetime
 from sklearn.impute import KNNImputer
 from io import StringIO
-
+from sklearn.metrics import mean_squared_error, r2_score
 
 streamlit.markdown("""<style> .font {font-size: 5px; font-weight: bold; background-color: green} </style> """,
     unsafe_allow_html=True
@@ -1016,7 +1016,7 @@ elif selected_action_option == "Model builder":
                                         status_text.text(f"Training in progress... Epoch {epoch + 1}/{epochs}")
                                         if epoch == epochs - 1:
                                             status_text.success("Training complete!")
-
+                                            
                                     progress_callback = LambdaCallback(on_epoch_end=update_progress)    
 
                                     history = model.fit(
@@ -1027,6 +1027,15 @@ elif selected_action_option == "Model builder":
                                         )
 
                                     y_pred = model.predict(X_test)
+   
+                                    mse = mean_squared_error(y_test, y_pred)
+                                    r2 = r2_score(y_test, y_pred)
+
+                                    metrics = [{
+                                        "": ["Mean Square Error", "R-Squared"],
+                                        "": [f"{mse:.4f}", f"{r2:.4f}"]
+                                    }]
+                                    streamlit.dataframe(metrics, hide_index=True)
 
                                     fig, ax = pyplot.subplots(figsize=(6, 4))
                                     ax.plot(history.history["loss"], label="Training Loss")
