@@ -5,7 +5,7 @@ from matplotlib import pyplot
 from supabase import create_client, Client
 from plotly import express
 
-streamlit.set_page_config(page_title="neuroflow application", layout="wide")
+streamlit.set_page_config(page_title="neuroflow application", layout="wide", initial_sidebar_state="auto")
 
 
 supabase_url = streamlit.secrets["SUPABASE_URL"] 
@@ -25,7 +25,7 @@ def sign_in(email, password):
         user = supabase.auth.sign_in_with_password({"email": email, "password": password})
         return user
     except Exception as e:
-        streamlit.error(f"Login failed: {e}. Or possibly you have not yet confirmed your email address.")
+        streamlit.error(f"Login failed: {e}.")
         return None 
 
 def sign_out():
@@ -71,10 +71,10 @@ def main_app(user_email):
         "ModelFlow/data-config/data-upload.py", title="Data upload", icon=":material/upload:", default=False
         )
     manage_files = streamlit.Page(
-        "ModelFlow/data-config/manage-files.py", title="manage files", icon=":material/files:", default=False
+        "ModelFlow/data-config/manage-files.py", title="Manage files", icon=":material/files:", default=False
         )
-    model_history = streamlit.Page(
-        "ModelFlow/model-history.py", title="Model History", icon=":material/history:", default=False
+    application = streamlit.Page(
+        "ModelFlow/model-history.py", title="Application", icon=":material/history:", default=False
         )
     neuro_flow = streamlit.Page(
         "ModelFlow/neuro-flow.py", title="Neuro Flow", icon=":material/analytics:", default=False
@@ -96,7 +96,7 @@ def main_app(user_email):
         )
 
     streamlit.navigation({
-        "Model Flow": [landing_page, data_upload, manage_files, neuro_flow, model_history],
+        "Model Flow": [landing_page, data_upload, manage_files, neuro_flow, application],
         "Reports": [dashboard, visuals],
         "Tools": [data_migration, data_cleaning, search]
         }).run()

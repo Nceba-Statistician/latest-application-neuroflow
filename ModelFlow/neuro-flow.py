@@ -1,5 +1,5 @@
-import streamlit, tensorflow, os, pandas, numpy, seaborn 
-from keras.api.models import Sequential
+import streamlit, tensorflow, os, pandas, numpy, seaborn, pickle
+from keras.api.models import Sequential, save_model, load_model
 from keras.api.layers import  Dense, Dropout, Input
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
@@ -55,11 +55,11 @@ if streamlit.checkbox("Read Guide"):
         with streamlit.expander("Purpose"):
             streamlit.write("Analyze the distribution of numeric features (e.g., skewed, Kurtosis, Gaussian, Logistic, Lognormal, Gumbel, Exponential, Weibull etc) to decide on transformations or statistical assumptions.") 
 
-Action_options = ["Select an action", "Select model fields", "Transform field values", "Update field data types",
+Action_options = ["", "Select model fields", "Transform field values", "Update field data types",
                   "Imputation", "Correlation Matrix", "Determine statistical distribution", "Model builder"]
 selected_action_option = streamlit.selectbox("Choose an action:", Action_options, key="selectbox_action")
 
-if selected_action_option == "Select an action":
+if selected_action_option == "":
     streamlit.session_state["disable"] = True
     streamlit.info("Please select an action to continue.")
 elif selected_action_option == "Select model fields": 
@@ -960,7 +960,7 @@ elif selected_action_option == "Model builder":
                                                   "RNN – Recurrent Neural Network",
                                                   "LSTM – Long Short-Term Memory Network"]
                                                  )
-                if NN_options == "":
+                if NN_options == "": 
                     streamlit.session_state["disable"] = True
                 elif NN_options == "FNN – Feedforward Neural Network":
                     columns_list = records.columns.tolist()
@@ -1031,7 +1031,7 @@ elif selected_action_option == "Model builder":
                                         )
 
                                     y_pred = model.predict(X_test)
-   
+
                                     mse = mean_squared_error(y_test, y_pred)
                                     r2 = r2_score(y_test, y_pred)
                                     col_skew_kurt, col_JB, col_WD, col_CI, col_mse, col_r = streamlit.columns(6)
@@ -1093,8 +1093,8 @@ elif selected_action_option == "Model builder":
                                             streamlit.write("1 means the model perfectly explains the variance.")
                                             streamlit.write("0 means the model explains none of the variance.")       
 
-                                    lr = LinearRegression()
-                                    lr_FNN = lr.fit(X_train, y_train)
+                                    # lr = LinearRegression()
+                                    # lr_FNN = lr.fit(X_train, y_train)
 
                                     X_train_constant = api.add_constant(X_train)
                                     model_FNN = api.OLS(y_train, X_train_constant).fit()
@@ -1144,7 +1144,71 @@ elif selected_action_option == "Model builder":
                                     model_name = streamlit.text_input("Name your model")
                                     if model_name:
                                         if streamlit.button("Save model"):
-                                            streamlit.success(f"✅ You have successfully saved your {model_name}!")        
+                                            save_path_root = "ModelFlow"
+                                            keras_model_save_path = os.path.join(save_path_root, "models", "saved-neural-network-Keras")
+                                            os.makedirs(keras_model_save_path, exist_ok=True)
+                                            full_path = os.path.join(keras_model_save_path, f"{model_name}.h5")
+                                            try:
+                                                save_model(model, full_path)
+                                                streamlit.success(f"✅ You have successfully saved your Keras model '{model_name}'")
+                                            except Exception as e:
+                                                streamlit.error(f"An error occurred while saving the Keras model: {e}") 
+                                            # try:
+                                                # with open(full_path, "wb") as file:
+                                                    # pickle.dump(model, file)
+                                                # streamlit.success(f"✅ You have successfully saved your {model_name}!")    
+                                            # except Exception as e:
+                                                # streamlit.error(f"An error occurred while saving the model: {e}")
+                                                # weights and biases: model.layers[i].get_weights()  
+                                ""
+                                save_path_root = "ModelFlow"
+                                keras_model_save_path = os.path.join(save_path_root, "models", "saved-neural-network-Keras")
+                                os.makedirs(keras_model_save_path, exist_ok=True)
+                                saved_keras_model = [
+                                    files for files in os.listdir(keras_model_save_path) if files.endswith(".png")
+                                    ]
+                                keras_model_choices = [""] + saved_keras_model
+                                selected_keras_model = streamlit.selectbox("", keras_model_choices, key="keras models")
+                                
+                                @streamlit.cache_resource
+                                def load_keras_model(model_path):
+                                    try:
+                                        loaded_model = load_model(model_path)
+                                        return loaded_model
+                                    except Exception as e:
+                                        streamlit.error(f"Error loading Keras model: {e}")
+                                        return None
+                                if selected_keras_model == "":
+                                    streamlit.session_state["disable"] = True
+                                    if keras_model_choices is None:
+                                        streamlit.info("You haven’t saved any keras model yet.")
+                                    else:
+                                        streamlit.info("Please select a keras model to continue.")
+                                else:
+                                    keras_model_path = os.path.join(keras_model_save_path, selected_keras_model)
+                                    try:
+                                        if selected_keras_model.endswith(".h5"):
+                                            model = load_keras_model(keras_model_path)
+                                            if model:
+                                                input_values = {}
+                                                for col in predictor_columns:
+                                                    input_values[col] = streamlit.text_input(f"{col}", key=f"input_{col}")
+
+                                                    if streamlit.button("Predict"):
+                                                        input_array = numpy.array([float(input_values[col]) for col in predictor_columns]).reshape(1, -1)
+                                                        try:
+                                                            prediction = model.predict(input_array)[0]
+                                                            streamlit.write(f"Predicted {target_column}: {prediction}")
+                                                        except Exception as e:
+                                                            streamlit.error(f"Error during prediction: {e}")  
+                                            else:
+                                                streamlit.error(f"model {selected_keras_model} failed to load")    
+                                            streamlit.write(f"Enter vales to predict {target_column}") # target_column predictor_columns
+                                        else:
+                                            streamlit.warning("Selected file is not a Keras model (.h5).")    
+                                    except Exception as e:
+                                        streamlit.error(f"Error : {e}") 
+
                             elif test_size_percentage is not None and (test_size_percentage <= 0 or test_size_percentage > 1):
                                 streamlit.warning("Test size should be between 0.0 and 1.0 (exclusive of 0).")
                             elif First_dense_value <= 0 or Second_dense_value <= 0:
