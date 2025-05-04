@@ -18,7 +18,7 @@ keras_model_save_path = os.path.join(save_path_root, "models", "saved-neural-net
 os.makedirs(keras_model_save_path, exist_ok=True)
 saved_keras_model = [files for files in os.listdir(keras_model_save_path) if files.endswith(".h5")]
 keras_model_choices = [""] + saved_keras_model
-selected_keras_model = streamlit.selectbox("", keras_model_choices, key="keras models")
+selected_keras_model = streamlit.selectbox("Neural Network Models", keras_model_choices, key="keras models")
 
 
 @streamlit.cache_resource
