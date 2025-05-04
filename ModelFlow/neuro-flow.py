@@ -1008,7 +1008,7 @@ elif selected_action_option == "Model builder":
                                 log_dir = "logs/" + datetime.datetime.now().strftime("%d_%m_%Y - %H_%M_%S")
                                 tensorboard_callback = TensorBoard(log_dir=log_dir, histogram_freq=1)
 
-                                if streamlit.button("Train Model"):
+                                if streamlit.button("Train Model", key="train model"):
 
                                     progress_bar = streamlit.progress(0)
                                     status_text = streamlit.empty()
@@ -1143,7 +1143,7 @@ elif selected_action_option == "Model builder":
                                     streamlit.write("If you're satisfied with the model's performance, you may proceed to save it.")
                                     model_name = streamlit.text_input("Name your model")
                                     if model_name:
-                                        if streamlit.button("Save model"):
+                                        if streamlit.button("Save model", key="save model"):
                                             save_path_root = "ModelFlow"
                                             keras_model_save_path = os.path.join(save_path_root, "models", "saved-neural-network-Keras")
                                             os.makedirs(keras_model_save_path, exist_ok=True)
@@ -1194,7 +1194,7 @@ elif selected_action_option == "Model builder":
                                                 for col in predictor_columns:
                                                     input_values[col] = streamlit.text_input(f"{col}", key=f"input_{col}")
 
-                                                    if streamlit.button(f"Predict {target_column}"):
+                                                    if streamlit.button(f"Predict {target_column}", key="predict_button"):
                                                         input_array = numpy.array([float(input_values[col]) for col in predictor_columns]).reshape(1, -1)
                                                         try:
                                                             prediction = model.predict(input_array)[0]
