@@ -94,3 +94,19 @@ else:
             streamlit.warning("Selected file is not a Keras model (.h5).")
     except Exception as e:
         streamlit.error(f"Error : {e}")
+
+save_path_root = "ModelFlow"
+traditional_statistical_model_save_path = os.path.join(save_path_root, "models", "saved-traditional-statistical-models")
+os.makedirs(traditional_statistical_model_save_path, exist_ok=True)
+saved_traditional_statistical_model = [files for files in os.listdir(traditional_statistical_model_save_path) if files.endswith(".pxl")]
+traditional_statistical_model_choices = [""] + saved_traditional_statistical_model
+selected_traditional_statistical_model = streamlit.selectbox("Traditional Statistical Models", traditional_statistical_model_choices, key="traditional statistical models")
+
+if selected_traditional_statistical_model == "":
+    streamlit.session_state["disable"] = True
+    if traditional_statistical_model_choices is None:
+        streamlit.info("You haven’t saved any traditional statistical model yet.")
+    else:
+        streamlit.info("Please select a traditional statistical model to continue.")
+else:
+    ""
