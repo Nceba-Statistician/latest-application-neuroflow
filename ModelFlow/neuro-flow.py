@@ -1194,7 +1194,7 @@ elif selected_action_option == "Model builder":
                                                 for col in predictor_columns:
                                                     input_values[col] = streamlit.text_input(f"{col}", key=f"input_{col}")
 
-                                                    if streamlit.button("Predict"):
+                                                    if streamlit.button(f"Predict {target_column}"):
                                                         input_array = numpy.array([float(input_values[col]) for col in predictor_columns]).reshape(1, -1)
                                                         try:
                                                             prediction = model.predict(input_array)[0]
