@@ -1165,15 +1165,15 @@ elif selected_action_option == "Model builder":
                                 keras_model_save_path = os.path.join(save_path_root, "models", "saved-neural-network-Keras")
                                 os.makedirs(keras_model_save_path, exist_ok=True)
                                 saved_keras_model = [
-                                    files for files in os.listdir(keras_model_save_path) if files.endswith(".png")
+                                    files for files in os.listdir(keras_model_save_path) if files.endswith(".h5")
                                     ]
                                 keras_model_choices = [""] + saved_keras_model
                                 selected_keras_model = streamlit.selectbox("", keras_model_choices, key="keras models")
                                 
                                 @streamlit.cache_resource
-                                def load_keras_model(model_path):
+                                def load_keras_model(keras_model_path):
                                     try:
-                                        loaded_model = load_model(model_path)
+                                        loaded_model = load_model(keras_model_path)
                                         return loaded_model
                                     except Exception as e:
                                         streamlit.error(f"Error loading Keras model: {e}")
