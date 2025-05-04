@@ -1,7 +1,7 @@
 import streamlit, pandas
 
 streamlit.write("Nceba Gagaza")
-streamlit.important("Profile coming soon!")
+streamlit.info("Profile coming soon!")
 streamlit.write("Education history, work experience, projects, etc")
 CV_pdf = pandas.DataFrame([{
   "CV": "Nceba Gagaza"
