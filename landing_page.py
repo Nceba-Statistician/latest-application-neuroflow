@@ -13,13 +13,13 @@ def create_pdf():
 
 streamlit.write("Nceba Gagaza")
 streamlit.info("Profile coming soon!")
-streamlit.write("Education history, work experience, projects, etc")
+streamlit.write("Education history, work experience, specialization, etc")
 
 pdf_bytes = create_pdf()
 
 streamlit.download_button(
     label="Download Profile (PDF)",
     data=pdf_bytes,
-    file_name="Nceba_Gagaza_Profile.pdf",
+    file_name="Nceba_Gagaza_profile.pdf",
     mime="application/pdf",
 )
