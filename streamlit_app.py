@@ -64,7 +64,7 @@ def main_app(user_email):
     # streamlit.markdown("""<div class="title"> AI Architect application</div>""", unsafe_allow_html=True)
 
     landing_page = streamlit.Page(
-        "landing_page.py", title="neuro flow", icon=":material/computer:", default=True
+        "profile_page.py", title="Profile", default=True
         )
     
     data_upload = streamlit.Page(
@@ -108,9 +108,9 @@ def main_app(user_email):
 
 def auth_screen():
     streamlit.markdown("""<div style="display: flex; justify-content: center; align-items: center">Welcome</div>""", unsafe_allow_html=True)
-    landing_for_auth = streamlit.Page("landing_page.py", title="Landing Page", icon=":material/menu:")
     email = streamlit.text_input("Email", key="login_email", placeholder="Enter your email")
     password = streamlit.text_input("Password", key="login_password", placeholder="Enter your password", type="password")
+    landing_for_auth = streamlit.Page("landing_page.py", title="Landing Page", icon=":material/menu:")
     if streamlit.button("Login"):
         user = sign_in(email, password)
         if user and user.user:
@@ -146,10 +146,11 @@ def auth_screen():
                 forgot_password(reset_email)
             else:
                 streamlit.warning("Please enter your email address.") 
-  
+
     streamlit.navigation({
         "Home": [landing_for_auth]
         }).run()
+            
 
 if "user_email" not in streamlit.session_state:
     streamlit.session_state["user_email"] = None
