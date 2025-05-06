@@ -8,7 +8,7 @@ saved_files = [
     ]
 file_choices = ["Select file to view fields"] + saved_files
 
-col1_dash, col2_dash, col3_dash, col4_dash, col5_dash = streamlit.columns(5)
+col1_dash, col2_dash, col3_dash, col5_dash = streamlit.columns(4)
 
 with col5_dash:
     selected_file = streamlit.selectbox("📂 Choose from your saved files:", file_choices, key="selectbox_dashboard", label_visibility="collapsed")
