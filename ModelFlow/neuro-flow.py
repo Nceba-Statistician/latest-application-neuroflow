@@ -1167,14 +1167,6 @@ elif selected_action_option == "Model builder":
                                                         
                                             except Exception as e:
                                                 streamlit.error(f"An error occurred while saving the Keras model: {e}") 
-
-                                            # try:
-                                                # with open(full_path, "wb") as file:
-                                                    # pickle.dump(model, file)
-                                                # streamlit.success(f"✅ You have successfully saved your {model_name}!")    
-                                            # except Exception as e:
-                                                # streamlit.error(f"An error occurred while saving the model: {e}")
-                                                # weights and biases: model.layers[i].get_weights()  
                                 ""
                             elif test_size_percentage is not None and (test_size_percentage <= 0 or test_size_percentage > 1):
                                 streamlit.warning("Test size should be between 0.0 and 1.0 (exclusive of 0).")
