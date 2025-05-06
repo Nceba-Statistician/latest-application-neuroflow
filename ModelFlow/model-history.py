@@ -109,8 +109,4 @@ if selected_traditional_statistical_model == "":
     else:
         streamlit.info("Please select a traditional statistical model to continue.")
 else:
-<<<<<<< HEAD
     ""
-=======
-    ""
->>>>>>> 0dc3a71 (updated)
