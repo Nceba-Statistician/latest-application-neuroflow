@@ -21,7 +21,6 @@ keras_model_choices = [""] + saved_keras_model
 selected_keras_model = streamlit.selectbox("Neural Network Models", keras_model_choices, key="keras models")
 
 
-@streamlit.cache_resource
 def load_keras_model(keras_model_path):
     try:
         loaded_model = load_model(keras_model_path)
