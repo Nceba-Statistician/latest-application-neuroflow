@@ -15,6 +15,8 @@ from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.linear_model import LinearRegression
 from statsmodels.formula.api import ols
 from statsmodels.stats.anova import anova_lm, AnovaRM
+from scipy.stats import pearsonr
+from PIL import Image
 
 streamlit.markdown("""<style> .font {font-size: 5px; font-weight: bold; background-color: green} </style> """,
     unsafe_allow_html=True
@@ -1265,15 +1267,71 @@ elif selected_action_option == "Model builder":
                         elif Relationships_Between_Variables_choice == "Pearson Correlation":
                             with streamlit.expander("Description"):
                                 streamlit.write("Measures the linear relationship between two continuous variables")
+                            Columns_Pearson_Correlation = records.columns.tolist()
+                            selected_fields_Pearson_Correlation = streamlit.multiselect("Choose two or more numerical columns", [""] + Columns_Pearson_Correlation, key="Pearson Correlation")
+                            if selected_fields_Pearson_Correlation:
+                                Non_numeric_selected_fields_Pearson_Correlation = [
+                                    col for col in selected_fields_Pearson_Correlation if not pandas.api.types.is_numeric_dtype(records[col])
+                                ]
+                                if Non_numeric_selected_fields_Pearson_Correlation:
+                                    streamlit.warning(f"The following selected columns are not numeric and cannot be used for Pearson Correlation: {', '.join(Non_numeric_selected_fields_Pearson_Correlation)}")
+                                elif len(selected_fields_Pearson_Correlation) == 2:
+                                    if streamlit.button("Perform Pearson Correlation"):
+                                        try:
+                                            sample1 = records[selected_fields_Pearson_Correlation[0]]
+                                            sample2 = records[selected_fields_Pearson_Correlation[1]] 
+                                            correlation, p_value = pearsonr(sample1, sample2)
+                                            two_samples_pc = pandas.DataFrame({
+                                                "Pearson Correlation Coefficient": [f"{correlation:.4f}"],
+                                                "P-value": [f"{p_value:.4f}"]
+                                            })
+                                            streamlit.markdown(two_samples_pc.style.hide(axis="index").to_html(), unsafe_allow_html = True)
+                                            if p_value <= 0.05:
+                                                streamlit.success("✅ Based on the statistical analysis, at a significance level of α=0.05, we reject the null hypothesis, the correlation is statistically significant, suggesting it's unlikely the observed relationship is due to random chance. This doesn't necessarily mean there's a causal relationship, just a statistically significant correlation.")
+                                            elif p_value > 0.05:
+                                                streamlit.success("✅ Based on the statistical analysis, at a significance level of α=0.05, we fail to reject the null hypothesis, the correlation is not statistically significant, suggesting the observed relationship is more likely due to chance.")
+                                            hype, p_val = streamlit.columns(2) 
+                                            with hype:
+                                                with streamlit.expander("Hypothesis"):
+                                                    streamlit.write("**Null hypothesis**: There is no linear relationship between the two variables.")
+                                                    streamlit.write("**Alternative hypothesis**: There is a significant linear relationship between the two variables.")
+                                            with p_val:
+                                                with streamlit.expander("P-value"):
+                                                    streamlit.write("P-value assesses the statistical significance of the correlation coefficient, indicating how likely the observed correlation is due to chance if there were no real relationship between the variables")
+                                        except Exception as e:
+                                            streamlit.error(f"Error occurred while performing pearson correlation: {e}")    
+                                else:
+                                    streamlit.warning("Please select exactly two columns for pearson correlation")      
                         elif Relationships_Between_Variables_choice == "Linear Regression":
                             with streamlit.expander("Description"):
                                 streamlit.write("Models the linear relationship between a dependent variable and one or more independent variables")
+                            ref_slr = os.path.join("Reports", "charts-config", "saved-charts")
+                            os.makedirs(ref_slr, exist_ok=True)
+                            ref_slr_png = "SimpleLinearRegression.png"
+                            ref_slr_path = os.path.join(ref_slr, ref_slr_png)
+                            if streamlit.checkbox("Refresh your memory of a Simple Linear Regression", key="Linear Regression SimpleLinearRegression"):
+                                img = Image.open(ref_slr_path)
+                                img_array = numpy.array(img)
+                                streamlit.image(img_array)
+                                
+                            
+
                         elif Relationships_Between_Variables_choice == "Multiple Regression":
                             with streamlit.expander("Description"):
                                 streamlit.write("Extends linear regression to include multiple independent variables")
+                            ref_slr = os.path.join("Reports", "charts-config", "saved-charts")
+                            os.makedirs(ref_slr, exist_ok=True)
+                            ref_slr_png = "SimpleLinearRegression.png"
+                            ref_slr_path = os.path.join(ref_slr, ref_slr_png)
+                            if streamlit.checkbox("Refresh your memory of a Simple Linear Regression", key="Multiple Regression SimpleLinearRegression"):
+                                img = Image.open(ref_slr_path)
+                                img_array = numpy.array(img)
+                                streamlit.image(img_array)
+
                         elif Relationships_Between_Variables_choice == "Polynomial Regression":
                             with streamlit.expander("Description"):
-                                streamlit.write("Models non-linear relationships by including polynomial terms of the independent variable(s)")              
+                                streamlit.write("Models non-linear relationships by including polynomial terms of the independent variable(s)") 
+                            streamlit.write("Coming soon!")                
                     elif Parametric_Methods_Focused_choice == "Methods Focused on Categorical Data (often relying on asymptotic normality)":
                         Categorical_Data_choice = streamlit.selectbox("Choose your specific method", ["", "Chi-Square Tests"])
                         if Categorical_Data_choice == "":
@@ -1282,7 +1340,8 @@ elif selected_action_option == "Model builder":
                             with streamlit.expander("Description"):
                                 streamlit.write("Goodness-of-fit test: Comparing observed frequencies to expected frequencies")
                                 streamlit.write("Test of independence: Examining the association between two categorical variables")
-                                streamlit.write("Test of homogeneity: Comparing the distribution of a categorical variable across two or more groups")    
+                                streamlit.write("Test of homogeneity: Comparing the distribution of a categorical variable across two or more groups") 
+                            streamlit.write("Coming soon!")       
                     elif Parametric_Methods_Focused_choice == "Other Parametric Methods":
                         Other_Parametric_Methods = streamlit.selectbox("Choose your specific method",
                                                                        ["", "Z-tests", "Parametric Survival Analysis"]
@@ -1291,7 +1350,7 @@ elif selected_action_option == "Model builder":
                             streamlit.session_state["disable"] = True
                         elif Other_Parametric_Methods == "Z-tests":
                             with streamlit.expander("Description"):
-                                streamlit.write("Similar to t-tests but used when the population standard deviation is known or" \
+                                streamlit.write("Similar to t-tests but used when the population standard deviation is known or " \
                                 "the sample size is large (relying on the Central Limit Theorem)")
                         elif Other_Parametric_Methods == "Parametric Survival Analysis":
                             with streamlit.expander("Description"):
