@@ -7,11 +7,14 @@ from matplotlib import pyplot
 from keras.api.callbacks import TensorBoard, LambdaCallback
 from scipy import stats
 from statsmodels import api
+from statsmodels.api import OLS
 import datetime
 from sklearn.impute import KNNImputer
 from io import StringIO
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.linear_model import LinearRegression
+from statsmodels.formula.api import ols
+from statsmodels.stats.anova import anova_lm, AnovaRM
 
 streamlit.markdown("""<style> .font {font-size: 5px; font-weight: bold; background-color: green} </style> """,
     unsafe_allow_html=True
@@ -848,22 +851,408 @@ elif selected_action_option == "Model builder":
                         streamlit.session_state["disable"] = True
                     elif Parametric_Methods_Focused_choice == "Methods Focused on Means and Differences of Means":
                         Means_and_Differences_of_Means_choice = streamlit.selectbox("Choose your specific method",
-                                                                                    ["", "T-tests", "ANOVA", "ANCOVA"])
+                                                                                    ["", "T-tests", "ANOVA"])
                         if Means_and_Differences_of_Means_choice == "":
                             streamlit.session_state["disable"] = True
                         elif Means_and_Differences_of_Means_choice == "T-tests":
                             with streamlit.expander("Student's t-tests"):
-                                streamlit.write("One-sample t-test: Comparing a single sample mean to a known value")
-                                streamlit.write("Independent samples t-test: Comparing means of two independent groups")
-                                streamlit.write("Paired samples t-test: Comparing means of two related groups, like before-and-after measurements")
+                                streamlit.write("**One-sample t-test**: Comparing a single sample mean to a known population mean")
+                                streamlit.write("**Independent samples t-test**: Comparing means of two independent samples")
+                                streamlit.write("**Paired samples t-test**: Comparing means of two related samples, like before-and-after measurements")
+                            t_tests_options = streamlit.selectbox("Choose T-test type",
+                                                                  ["", "One-Sample T-test", "Independent (Two-Sample) T-test", "Paired-Sample T-test"]
+                                                                  )
+                            if t_tests_options == "":
+                                streamlit.session_state["disable"] = True
+                            elif t_tests_options == "One-Sample T-test":
+                                Population_mean_options = streamlit.selectbox("You already know your population mean value?", ["", "Yes", "No"])
+                                if Population_mean_options == "":
+                                    streamlit.session_state["disable"] = True
+                                elif Population_mean_options == "Yes":
+                                    One_Sample_T_test_columns = records.columns.tolist()
+                                    selected_One_Sample_T_test = streamlit.selectbox("Choose sample", [""] + One_Sample_T_test_columns, key="One-Sample T-test")
+                                    if selected_One_Sample_T_test:
+                                        Non_numeric_One_Sample_T_test = not pandas.api.types.is_numeric_dtype(records[selected_One_Sample_T_test])
+                                        if Non_numeric_One_Sample_T_test:
+                                            streamlit.warning(f"The selected column '{selected_One_Sample_T_test}' ('{records[selected_One_Sample_T_test].dtype}') is non-numeric. Please select a numeric column for One-Sample T-test.")
+                                        else:    
+                                            Known_population_mean_value = streamlit.number_input("Add your known population mean value", key="Known_population_mean_value")
+                                            if Known_population_mean_value:
+                                                try:
+                                                    if streamlit.button("Perform One-Sample T-test"):
+                                                        t_statistic, p_value = stats.ttest_1samp(records[selected_One_Sample_T_test], Known_population_mean_value)
+                                                        One_Sample_T_test_tab = pandas.DataFrame({
+                                                            "T-statistic": [f"{t_statistic:.4f}"],
+                                                            "P-value": [f"{p_value:.4f}"]
+                                                        })
+                                                        streamlit.markdown(One_Sample_T_test_tab.style.hide(axis="index").to_html(), unsafe_allow_html=True)
+                                                        if p_value <= 0.01:
+                                                            streamlit.success("✅ Based on the statistical analysis, at a significance level of α=0.05, we reject the null hypothesis, suggesting that there is a strong evidence that the mean of the population from which the sample is drawn (μ) is not equal to the hypothesized population mean.")
+                                                        elif 0.01 < p_value < 0.049:
+                                                            streamlit.success("✅ Based on the statistical analysis, at a significance level of α=0.05, we reject the null hypothesis, suggesting that the mean of the population from which the sample is drawn (μ) is not equal to the hypothesized population mean.")
+                                                        elif 0.049 <= p_value <= 0.05:
+                                                            streamlit.success("✅ Based on the statistical analysis, at a significance level of α=0.05, we reject the null hypothesis, suggesting that there is a marginally evidence that the mean of the population from which the sample is drawn (μ) is not equal to the hypothesized population mean.")
+                                                        elif p_value > 0.05:
+                                                            streamlit.success("✅ Based on the statistical analysis, at a significance level of α=0.05, we fail to reject the null hypothesis, suggesting that the mean of the population from which the sample is drawn (μ) is equal to the hypothesized population mean.") 
+                                                        hype, t_stat, p_val = streamlit.columns(3) 
+                                                        with hype:
+                                                            with streamlit.expander("Hypothesis"):
+                                                                streamlit.write("**Null hypothesis**: The mean of the population from which the sample is drawn (μ) is equal to the hypothesized population mean.")
+                                                                streamlit.write("**Alternative hypothesis**: The mean of the population from which the sample is drawn (μ) is not equal to the hypothesized population mean.")
+                                                        with t_stat:
+                                                            with streamlit.expander("T-statistic"):
+                                                                streamlit.write("A **large absolute T-statistic** suggests that the observed difference is unlikely to have occurred by random chance alone if the null hypothesis were true, making it more likely that you would reject the null hypothesis.")
+                                                                streamlit.write("A **small absolute T-statistic** suggests that the observed difference could likely have occurred by random chance even if the null hypothesis were true, making it less likely that you would reject the null hypothesis.")
+                                                        with p_val:
+                                                            with streamlit.expander("P-value"):
+                                                                streamlit.write("p-value is the probability 'or chance' of seeing sample data that shows differences"
+                                                                                "between the group averages as large as or even larger than what you observed in your actual data")
+                                                        
+                                                except Exception as e:
+                                                    streamlit.error(f"There was an error while comparing '{selected_One_Sample_T_test}' mean to '{Known_population_mean_value}'")
+                                elif Population_mean_options == "No":
+                                    One_Sample_T_test_columns_population_mean = records.columns.tolist()
+                                    selected_One_Sample_T_test_population_mean = streamlit.selectbox("Choose group for population mean", [""] + One_Sample_T_test_columns_population_mean, key="One-Sample population mean")
+                                    if selected_One_Sample_T_test_population_mean == "":
+                                        streamlit.session_state["disable"] = True
+                                    else:
+                                        if selected_One_Sample_T_test_population_mean:
+                                            if not pandas.api.types.is_numeric_dtype(records[selected_One_Sample_T_test_population_mean]):
+                                                streamlit.warning(f"The selected population column '{selected_One_Sample_T_test_population_mean}' ('{records[selected_One_Sample_T_test_population_mean].dtype}') is non-numeric. Please select a numeric column.")
+                                            else:
+                                                One_Sample_T_test_columns_ = records.columns.tolist()
+                                                selected_One_Sample_T_test_ = streamlit.selectbox("Choose sample", [""] + One_Sample_T_test_columns_, key="One-Sample T-test pop mean")
+                                                if selected_One_Sample_T_test_:
+                                                    if not pandas.api.types.is_numeric_dtype(records[selected_One_Sample_T_test_]):
+                                                        streamlit.warning(f"The selected column '{selected_One_Sample_T_test_}' ('{records[selected_One_Sample_T_test_].dtype}') is non-numeric. Please select a numeric column for One-Sample T-test.")
+                                                    else:
+                                                        if streamlit.button("Perform One-Sample T-test"):
+                                                            try:
+                                                                population_mean_one_samp = numpy.mean(records[selected_One_Sample_T_test_population_mean])
+                                                                try:
+                                                                    t_statistic, p_value = stats.ttest_1samp(records[selected_One_Sample_T_test_], population_mean_one_samp)
+                                                                    One_Sample_T_test_tab = pandas.DataFrame({
+                                                                        "T-statistic": [f"{t_statistic:.4f}"],
+                                                                        "P-value": [f"{p_value:.4f}"]
+                                                                        })
+                                                                    streamlit.markdown(One_Sample_T_test_tab.style.hide(axis="index").to_html(), unsafe_allow_html=True)
+                                                                    if p_value <= 0.01:
+                                                                        streamlit.success("✅ Based on the statistical analysis, at a significance level of α=0.05, we reject the null hypothesis, suggesting that there is a strong evidence that the mean of the population from which the sample is drawn (μ) is not equal to the hypothesized population mean.")
+                                                                    elif 0.01 < p_value < 0.049:
+                                                                        streamlit.success("✅ Based on the statistical analysis, at a significance level of α=0.05, we reject the null hypothesis, suggesting that the mean of the population from which the sample is drawn (μ) is not equal to the hypothesized population mean.")
+                                                                    elif 0.049 <= p_value <= 0.05:
+                                                                        streamlit.success("✅ Based on the statistical analysis, at a significance level of α=0.05, we reject the null hypothesis, suggesting that there is a marginally evidence that the mean of the population from which the sample is drawn (μ) is not equal to the hypothesized population mean.")
+                                                                    elif p_value > 0.05:
+                                                                        streamlit.success("✅ Based on the statistical analysis, at a significance level of α=0.05, we fail to reject the null hypothesis, suggesting that the mean of the population from which the sample is drawn (μ) is equal to the hypothesized population mean.") 
+                                                                    hype, t_stat, p_val = streamlit.columns(3) 
+                                                                    with hype:
+                                                                        with streamlit.expander("Hypothesis"):
+                                                                            streamlit.write("**Null hypothesis**: The mean of the population from which the sample is drawn (μ) is equal to the hypothesized population mean.")
+                                                                            streamlit.write("**Alternative hypothesis**: The mean of the population from which the sample is drawn (μ) is not equal to the hypothesized population mean.")
+                                                                    with t_stat:
+                                                                        with streamlit.expander("T-statistic"):
+                                                                            streamlit.write("A **large absolute T-statistic** suggests that the observed difference is unlikely to have occurred by random chance alone if the null hypothesis were true, making it more likely that you would reject the null hypothesis.")
+                                                                            streamlit.write("A **small absolute T-statistic** suggests that the observed difference could likely have occurred by random chance even if the null hypothesis were true, making it less likely that you would reject the null hypothesis.")
+                                                                    with p_val:
+                                                                        with streamlit.expander("P-value"):
+                                                                            streamlit.write("p-value is the probability 'or chance' of seeing sample data that shows differences"
+                                                                                            "between the group averages as large as or even larger than what you observed in your actual data")
+                                                        
+                                                                except Exception as e:
+                                                                    streamlit.error(f"Error occurred while performing One-Sample T-test: {e}")    
+  
+                                                            except Exception as e:
+                                                                streamlit.error(f"Error occurred while calculating population mean: {e}")    
+                                                       
+
+                            elif t_tests_options == "Independent (Two-Sample) T-test":
+                                Columns_indep_two_samples = records.columns.tolist()
+                                selected_indep_two_samples = streamlit.multiselect("Choose samples", [""] + Columns_indep_two_samples, key="Independent Two-Sample")
+                                if selected_indep_two_samples:
+                                    Non_numeric_selected_indep_two_samples = [col for col in selected_indep_two_samples if not pandas.api.types.is_numeric_dtype(records[col])]
+                                    if Non_numeric_selected_indep_two_samples:
+                                        streamlit.warning(f"The following selected columns are not numeric and cannot be used for independent two sample T-test: {', '.join(Non_numeric_selected_indep_two_samples)}")
+                                    elif len(selected_indep_two_samples) != 2: 
+                                        streamlit.warning("Please select exactly two samples for the Independent (Two-Sample) T-test.")    
+                                    else:
+                                        You_assume_equal_variances = streamlit.selectbox("Assume equal variances?", ["", "Yes", "No"])
+                                        if You_assume_equal_variances == "":
+                                            streamlit.session_state["disable"] = True
+                                        elif You_assume_equal_variances == "Yes":
+                                            if streamlit.button("Perform Independent (Two-Sample) T-test"):
+                                                try:
+                                                    sample1 = records[selected_indep_two_samples[0]]
+                                                    sample2 = records[selected_indep_two_samples[1]]
+                                                    t_statistic_ind_eq_var, p_value_ind_eq_var = stats.ttest_ind(
+                                                        sample1, sample2, equal_var=True
+                                                    )
+                                                    Indep_two_sample_tab = pandas.DataFrame({
+                                                        "T-statistic": [f"{t_statistic_ind_eq_var:.4f}"],
+                                                        "P-value": [f"{p_value_ind_eq_var:.4f}"]
+                                                        })
+                                                    streamlit.markdown(Indep_two_sample_tab.style.hide(axis="index").to_html(), unsafe_allow_html = True)
+                                                    
+                                                    if p_value_ind_eq_var <= 0.01:
+                                                        streamlit.success("✅ Based on the statistical analysis, at a significance level of α=0.05, we reject the null hypothesis, suggesting that there is a strong evidence that the is a difference between the population means of the two groups.")
+                                                    elif 0.01 < p_value_ind_eq_var < 0.049:
+                                                        streamlit.success("✅ Based on the statistical analysis, at a significance level of α=0.05, we reject the null hypothesis, suggesting that there is a difference between the population means of the two groups.")
+                                                    elif 0.049 <= p_value_ind_eq_var <= 0.05:
+                                                        streamlit.success("✅ Based on the statistical analysis, at a significance level of α=0.05, we reject the null hypothesis, suggesting that there is a marginally evidence that the is a difference between the population means of the two groups.")
+                                                    elif p_value_ind_eq_var > 0.05:
+                                                        streamlit.success("✅ Based on the statistical analysis, at a significance level of α=0.05, we fail to reject the null hypothesis, suggesting that there is no difference between the population means of the two groups.") 
+                                                        
+                                                    hype, t_stat, p_val = streamlit.columns(3) 
+                                                    with hype:
+                                                        with streamlit.expander("Hypothesis"):
+                                                            streamlit.write("**Null hypothesis**: There is no difference between the population means of the two groups.")
+                                                            streamlit.write("**Alternative hypothesis**: There is a difference between the population means of the two groups.")
+                                                    with t_stat:
+                                                        with streamlit.expander("T-statistic"):
+                                                            streamlit.write("A **large absolute T-statistic** suggests that the observed difference is unlikely to have occurred by random chance alone if the null hypothesis were true, making it more likely that you would reject the null hypothesis.")
+                                                            streamlit.write("A **small absolute T-statistic** suggests that the observed difference could likely have occurred by random chance even if the null hypothesis were true, making it less likely that you would reject the null hypothesis.")
+                                                    with p_val:
+                                                        with streamlit.expander("P-value"):
+                                                            streamlit.write("p-value is the probability 'or chance' of seeing sample data that shows differences"
+                                                                            "between the group averages as large as or even larger than what you observed in your actual data")
+                                                        
+                                                except Exception as e:
+                                                    streamlit.error(f"Error occurred while performing Independent (Two-Sample) T-test: {e}")
+
+                                        elif You_assume_equal_variances == "No":
+                                            if streamlit.button("Perform Independent (Two-Sample) T-test"):
+                                                try:
+                                                    sample1 = records[selected_indep_two_samples[0]]
+                                                    sample2 = records[selected_indep_two_samples[1]]
+                                                    t_statistic_ind, p_value_ind = stats.ttest_ind(
+                                                        sample1, sample2
+                                                    )
+                                                    Indep_two_sample_tab = pandas.DataFrame({
+                                                        "T-statistic": [f"{t_statistic_ind:.4f}"],
+                                                        "P-value": [f"{p_value_ind:.4f}"]
+                                                        })
+                                                    streamlit.markdown(Indep_two_sample_tab.style.hide(axis="index").to_html(), unsafe_allow_html = True)
+
+                                                    if p_value_ind <= 0.01:
+                                                        streamlit.success("✅ Based on the statistical analysis, at a significance level of α=0.05, we reject the null hypothesis, suggesting that there is a strong evidence that there is a difference between the population means of the two groups.")
+                                                    elif 0.01 < p_value_ind < 0.049:
+                                                        streamlit.success("✅ Based on the statistical analysis, at a significance level of α=0.05, we reject the null hypothesis, suggesting that there is a difference between the population means of the two groups.")
+                                                    elif 0.049 <= p_value_ind <= 0.05:
+                                                        streamlit.success("✅ Based on the statistical analysis, at a significance level of α=0.05, we reject the null hypothesis, suggesting that there is a marginally evidence that there is a difference between the population means of the two groups.")
+                                                    elif p_value_ind > 0.05:
+                                                        streamlit.success("✅ Based on the statistical analysis, at a significance level of α=0.05, we fail to reject the null hypothesis, suggesting that there is no difference between the population means of the two groups.") 
+                                                        
+                                                    hype, t_stat, p_val = streamlit.columns(3) 
+                                                    with hype:
+                                                        with streamlit.expander("Hypothesis"):
+                                                            streamlit.write("**Null hypothesis**: There is no difference between the population means of the two groups.")
+                                                            streamlit.write("**Alternative hypothesis**: There is a difference between the population means of the two groups.")
+                                                    with t_stat:
+                                                        with streamlit.expander("T-statistic"):
+                                                            streamlit.write("A **large absolute T-statistic** suggests that the observed difference is unlikely to have occurred by random chance alone if the null hypothesis were true, making it more likely that you would reject the null hypothesis.")
+                                                            streamlit.write("A **small absolute T-statistic** suggests that the observed difference could likely have occurred by random chance even if the null hypothesis were true, making it less likely that you would reject the null hypothesis.")
+                                                    with p_val:
+                                                        with streamlit.expander("P-value"):
+                                                            streamlit.write("p-value is the probability 'or chance' of seeing sample data that shows differences"
+                                                                            "between the group averages as large as or even larger than what you observed in your actual data")
+                                                except Exception as e:
+                                                    streamlit.error(f"Error occurred while performing independent (two-sample) T-test: {e}")  
+
+                            elif t_tests_options == "Paired-Sample T-test":
+                                Columns_paired_sample = records.columns.tolist()
+                                selected_paired_sample_before = streamlit.selectbox("Choose sample **'before measurements'**", [""] + Columns_paired_sample, key="Paired-Sample before")
+                                selected_paired_sample_after = streamlit.selectbox("Choose sample **'after measurements'**", [""] + Columns_paired_sample, key="Paired-Sample after")
+                                if selected_paired_sample_before and selected_paired_sample_after:
+                                    if not pandas.api.types.is_numeric_dtype(records[selected_paired_sample_before]):
+                                        streamlit.warning(f"The selected column '{selected_paired_sample_before}' ('{records[selected_paired_sample_before].dtype}') is non-numeric. Please select a numeric column **'before measurements'**.")
+                                    elif not pandas.api.types.is_numeric_dtype(records[selected_paired_sample_after]):
+                                        streamlit.warning(f"The selected column '{selected_paired_sample_after}' ('{records[selected_paired_sample_after].dtype}') is non-numeric. Please select a numeric column **'after measurements'**.")  
+                                    else:
+                                        if streamlit.button("Perform Paired-Sample T-test"):
+                                            try:
+                                                before = records[selected_paired_sample_before]
+                                                after = records[selected_paired_sample_after]
+                                                t_statistic_rel, p_value_rel = stats.ttest_rel(before, after)
+                                                rel_paired_sample_tab = pandas.DataFrame({
+                                                    "T-statistic": [f"{t_statistic_rel:.4f}"],
+                                                    "P-value": [f"{p_value_rel:.4f}"]
+                                                    })
+                                                streamlit.markdown(rel_paired_sample_tab.style.hide(axis="index").to_html(), unsafe_allow_html = True)
+                                                if p_value_rel <= 0.01:
+                                                    streamlit.success("✅ Based on the statistical analysis, at a significance level of α=0.05, we reject the null hypothesis, suggesting that there is a strong evidence that there is a statistically significant difference between the two related groups.")
+                                                elif 0.01 < p_value_rel < 0.049:
+                                                    streamlit.success("✅ Based on the statistical analysis, at a significance level of α=0.05, we reject the null hypothesis, suggesting that there is a statistically significant difference between the two related groups.")
+                                                elif 0.049 <= p_value_rel <= 0.05:
+                                                    streamlit.success("✅ Based on the statistical analysis, at a significance level of α=0.05, we reject the null hypothesis, suggesting that there is a marginally evidence that there is a statistically significant difference between the two related groups.")
+                                                elif p_value_rel > 0.05:
+                                                    streamlit.success("✅ Based on the statistical analysis, at a significance level of α=0.05, we fail to reject the null hypothesis, suggesting that there is no statistically significant difference between the two related groups.") 
+                                                        
+                                                hype, t_stat, p_val = streamlit.columns(3) 
+                                                with hype:
+                                                    with streamlit.expander("Hypothesis"):
+                                                        streamlit.write("**Null hypothesis**: The mean difference between paired observations is zero.")
+                                                        streamlit.write("**Alternative hypothesis**: The mean difference between paired observations is not zero.")
+                                                with t_stat:
+                                                    with streamlit.expander("T-statistic"):
+                                                        streamlit.write("A **large absolute T-statistic** suggests that the observed difference is unlikely to have occurred by random chance alone if the null hypothesis were true, making it more likely that you would reject the null hypothesis.")
+                                                        streamlit.write("A **small absolute T-statistic** suggests that the observed difference could likely have occurred by random chance even if the null hypothesis were true, making it less likely that you would reject the null hypothesis.")
+                                                with p_val:
+                                                    with streamlit.expander("P-value"):
+                                                        streamlit.write("P-value is the probability of obtaining a sample mean difference as extreme as, or more extreme than, the one observed, assuming that the true mean difference between the paired observations in the population is zero (i.e., assuming the null hypothesis is true).")
+                                            except Exception as e:
+                                                streamlit.error(f"Error occurred while performing paired-sample T-test: {e}") 
+
                         elif Means_and_Differences_of_Means_choice == "ANOVA":
                             with streamlit.expander("Analysis of Variance"):
-                                streamlit.write("One-way ANOVA: Comparing means of three or more independent groups")
-                                streamlit.write("Two-way ANOVA: Examining the effects of two independent variables on a dependent variable")
-                                streamlit.write("Repeated measures ANOVA: Comparing means across multiple time points or conditions within the same subjects")
-                        elif Means_and_Differences_of_Means_choice == "ANCOVA":
-                            with streamlit.expander("Analysis of Covariance"):
-                                streamlit.write("Extends ANOVA by including one or more covariates to control for extraneous variables")    
+                                streamlit.write("**One-way ANOVA**: Comparing means of three or more independent groups")
+                                streamlit.write("**Two-way ANOVA**: Examining the effects of two independent variables on a dependent variable")
+                                streamlit.write("**Repeated measures ANOVA**: Comparing means across multiple time points or conditions within the same subjects")
+
+                            ANOVA_Options = streamlit.selectbox("Choose ANOVA type", ["", "One-way ANOVA", "Two-way ANOVA", "Repeated measures ANOVA"])
+                            if ANOVA_Options == "":
+                                streamlit.session_state["disable"] = True
+                            elif ANOVA_Options == "One-way ANOVA":
+                                columns_one_way_ANOVA = records.columns.tolist()
+                                Selected_one_way_groups = streamlit.multiselect("Choose sample groups", columns_one_way_ANOVA, key="One-way ANOVA")
+                                if Selected_one_way_groups:
+                                    non_numeric_columns = [col for col in Selected_one_way_groups if not pandas.api.types.is_numeric_dtype(records[col])]
+                                    if non_numeric_columns:
+                                        streamlit.warning(f"The following selected columns are not numeric and cannot be used for One-way ANOVA: {', '.join(non_numeric_columns)}")
+                                    elif len(Selected_one_way_groups) < 2:
+                                        streamlit.warning("Please select at least two sample groups for One-way ANOVA.")
+                                    else:
+                                        if streamlit.button("Perform One-way ANOVA"):
+                                            try:
+                                                f_statistic, p_value = stats.f_oneway(*[records[col] for col in Selected_one_way_groups]) # * (The Asterisk - Argument Unpacking)
+                                                        
+                                                One_way_ANOVA_tab = pandas.DataFrame({
+                                                    "F-statistic":[f"{f_statistic:.4f}"],
+                                                    "P-value":[f"{p_value:.4f}"]
+                                                    })
+                                                streamlit.markdown(One_way_ANOVA_tab.style.hide(axis="index").to_html(), unsafe_allow_html = True)
+                                                if p_value <= 0.01:
+                                                    streamlit.success("✅ Based on the statistical analysis, at a significance level of α=0.05, we reject the null hypothesis, suggesting that there is a highly significant difference in the means between at least one of the groups compared.")
+                                                elif 0.01 < p_value < 0.049:
+                                                    streamlit.success("✅ Based on the statistical analysis, at a significance level of α=0.05, we reject the null hypothesis, suggesting that there is a significant difference in the means between at least one of the groups compared.")
+                                                elif 0.049 <= p_value <= 0.05:
+                                                    streamlit.success("✅ Based on the statistical analysis, at a significance level of α=0.05, we reject the null hypothesis, suggesting that there is a marginally significant difference in the means between at least one of the groups compared.")
+                                                elif p_value > 0.05:
+                                                    streamlit.success("✅ Based on the statistical analysis, at a significance level of α=0.05, we fail to reject the null hypothesis, suggesting that there is no significant difference in the means between the groups compared.") 
+                                                
+                                                hype, f_stat, p_val = streamlit.columns(3) 
+                                                with hype:
+                                                    with streamlit.expander("Hypothesis"):
+                                                        streamlit.write("**Null hypothesis**: All group means are equal")
+                                                        streamlit.write("**Alternative hypothesis**: At least one group mean is different from the others.")
+                                                with f_stat:
+                                                    with streamlit.expander("F-statistic"):
+                                                        streamlit.write("A **large absolute F-statistic** suggests that the variability between the group means is large relative to the variability within each group.")
+                                                        streamlit.write("A **small absolute F-statistic** (close to 1) suggests that the variability between the group means is similar to the variability within the groups.")
+                                                with p_val:
+                                                    with streamlit.expander("P-value"):
+                                                        streamlit.write("p-value is the probability 'or chance' of seeing sample data that shows differences"
+                                                                        "between the group averages as large as or even larger than what you observed in your actual data")
+                                                        
+                                            except ValueError as e:
+                                                streamlit.info("Ensure the selected numeric columns contain sufficient data for each group.")
+                                                streamlit.error(f"Error during ANOVA calculation: {e}") 
+                                else:
+                                    streamlit.info("Please select at least two numeric sample groups to perform One-way ANOVA.")
+                            elif ANOVA_Options == "Two-way ANOVA":
+                                Columns_two_way_ANOVA = records.columns.tolist()
+                                with streamlit.expander("Assumption"):
+                                    streamlit.write("You have a numeric (continuous) dependent variable you are measuring and aiming to see if it's affected by the other factors (independent variables). " \
+                                    "These categorical independent variables (factors) are at least one or more.")
+                                selected_two_way_ANOVA = streamlit.multiselect("Choose sample groups", [""] + Columns_two_way_ANOVA, key="Two-way ANOVA")
+                                if selected_two_way_ANOVA == "":
+                                    streamlit.session_state["disable"] = True
+                                else:
+                                    if selected_two_way_ANOVA:
+                                        numeric_cols = []
+                                        categorical_cols = []
+                                        for col in selected_two_way_ANOVA:
+                                            if pandas.api.types.is_numeric_dtype(records[col]):
+                                                numeric_cols.append(col)
+                                            else:
+                                                categorical_cols.append(col)
+                                        if len(numeric_cols) == 1 and len(categorical_cols) >= 1:
+                                            streamlit.success("✅ Valid selection: One numeric and one or more categorical columns.")
+                                            streamlit.write("Numeric column:", numeric_cols[0])
+                                            streamlit.write("Categorical columns:", ", ".join(categorical_cols))
+                                            if streamlit.button("Perform two way ANOVA"):
+                                                for col in categorical_cols:
+                                                    formula_parts = [f'C({col})' for col in categorical_cols]
+                                                    interaction_term = ' * '.join(formula_parts)
+                                                    formula = f'{numeric_cols[0]} ~ {interaction_term}'
+                                                    try:
+                                                        model = ols(formula, data=records).fit()
+                                                        anova_table = anova_lm(model, type=2)  
+                                                    except Exception as e:
+                                                        streamlit.error(f"An error occurred: {e}")
+                                                streamlit.write(anova_table)
+
+                                                hype, df_col, sum_sq, mean_sq, f_stat, p_val = streamlit.columns(6) 
+                                                with hype:
+                                                    with streamlit.expander("Hypothesis"):
+                                                        streamlit.write("**Null hypothesis**: There is no significant difference in the means of the dependent variable across the different levels of Factor i.")
+                                                        streamlit.write("**Alternative hypothesis**: There is a significant difference in the means of the dependent variable between at least two levels of Factor i.")
+                                                with df_col:
+                                                    with streamlit.expander("Degrees of Freedom"):
+                                                        streamlit.write("Indicating j levels of factor i")
+
+                                                with sum_sq:
+                                                    with streamlit.expander("Sum of Squares"):
+                                                        streamlit.write("The sum of the squared deviations from the mean for each source of variance." \
+                                                        "Larger values indicate more variance explained by that source.")
+
+                                                with mean_sq:
+                                                    with streamlit.expander("Mean Square"):
+                                                        streamlit.write("The sum of squares divided by its degrees of freedom." \
+                                                        "This provides an estimate of the variance attributable to each source.")
+
+                                                with f_stat:
+                                                    with streamlit.expander("F-statistic"):
+                                                        streamlit.write("The ratio of the mean square of the effect to the mean square of the residuals.")
+                                                        streamlit.write("A larger F-statistic suggests that the variance explained by the factor is large relative to the unexplained variance.")
+                                                with p_val:
+                                                    with streamlit.expander("P-value"):
+                                                        streamlit.write("The probability of observing an F-statistic as extreme as, or more extreme than, the one calculated.")          
+                                        else:
+                                            streamlit.warning("Please select exactly one numeric column and at least one categorical column for Two-way ANOVA.")            
+
+                            elif ANOVA_Options == "Repeated measures ANOVA":
+                                columns_repeated_measures_ANOVA = records.columns.tolist()
+                                dependent_variable = streamlit.selectbox("Select the dependent variable:", [""] + columns_repeated_measures_ANOVA)
+                                subject_column = streamlit.selectbox("Select the subject/individual identifier column:", [""] + columns_repeated_measures_ANOVA)
+                                within_factors = streamlit.multiselect("Select the within-subject factor(s):", [col for col in columns_repeated_measures_ANOVA if col not in [dependent_variable, subject_column]]) 
+                                if dependent_variable and subject_column and within_factors:
+                                    dep_numeric_cols = []
+                                    if pandas.api.types.is_numeric_dtype(records[dependent_variable]):
+                                        dep_numeric_cols.append(dependent_variable)
+                                        if streamlit.button("Perform Repeated Measures ANOVA"):
+                                            try:
+                                                aovrm = AnovaRM(data=records, depvar=dep_numeric_cols, subject=subject_column, within=within_factors)
+                                                res = aovrm.fit()
+                                                streamlit.write(res)
+                                                hype, f_stat, p_val = streamlit.columns(3) 
+                                                with hype:
+                                                    with streamlit.expander("Hypothesis"):
+                                                        streamlit.write("**Null hypothesis**: All group means are equal.")
+                                                        streamlit.write("**Alternative hypothesis**: At least one group mean is different from the rest.")
+                                                with f_stat:
+                                                    with streamlit.expander("F-statistic"):
+                                                        streamlit.write("The ratio of the mean square of the effect to the mean square of the residuals.")
+                                                        streamlit.write("A larger F-statistic suggests that the variance explained by the factor is large relative to the unexplained variance.")
+                                                with p_val:
+                                                    with streamlit.expander("P-value"):
+                                                        streamlit.write("The probability of observing an F-statistic as extreme as, or more extreme than, the one calculated.")  
+
+                                            except Exception as e:
+                                                streamlit.error(f"An error occurred: {e}")  
+                                    else:
+                                        streamlit.warning("Please select a numeric dependent variable sample")  
+                                else:
+                                    streamlit.warning("Please select the dependent variable, subject column, and at least one within-subject factor.")        
+
                     elif Parametric_Methods_Focused_choice == "Methods Focused on Relationships Between Variables":
                         Relationships_Between_Variables_choice = streamlit.selectbox("Choose your specific method",
                                                                                      ["", "Pearson Correlation",
@@ -916,9 +1305,9 @@ elif selected_action_option == "Model builder":
             saved_files = [
                 files for files in os.listdir(save_path) if files.endswith(".csv") or files.endswith(".xlsx")
                 ]
-            file_choices = ["Select file to build model"] + saved_files
+            file_choices = [""] + saved_files
             selected_file = streamlit.selectbox("📂 Choose from your saved files:", file_choices, key="selectbox_model_builder_Non_Parametric")
-            if selected_file == "Select file to build model":
+            if selected_file == "":
                 streamlit.session_state["disable"] = True
                 streamlit.info("Please select file to continue.")
             else:
