@@ -1,14 +1,14 @@
 import streamlit, os, pandas, numpy, datetime, json, requests, pyodbc
 
 getdatachoices = [
-        "select your option", "Upload CSV", "Upload Excel", "Add API", "Connect to SQL"
+        "", "Upload CSV", "Upload Excel", "Add API", "Connect to SQL"
     ]
 Options = streamlit.selectbox("Upload file options: ", getdatachoices)
 # CSV
 
-if Options == "select your option":
+if Options == "":
     streamlit.session_state["disable"] = True
-    streamlit.warning("Select options above if your data is ready and if not visit preprocessing")
+    streamlit.warning("Select above to continue.")
 elif Options == "Upload CSV": 
     uploaded_CSV_file = streamlit.file_uploader("Upload a CSV file", type=["csv"])
     if "show_data" not in streamlit.session_state:
