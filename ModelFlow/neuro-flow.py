@@ -572,24 +572,7 @@ elif selected_action_option == "Determine statistical distribution":
                         ax.set_ylabel("Sample Quantiles")
                         ax.set_title("QQ Plot")
                         ax.grid(True)
-                        streamlit.pyplot(fig)
-                        
-                        num_points = streamlit.slider("Number of data points:", min_value=10, max_value=500, value=100)
-                        mean = streamlit.slider("Mean:", min_value=-5.0, max_value=5.0, value=0.0)
-                        std_dev = streamlit.slider("Standard Deviation:", min_value=0.1, max_value=5.0, value=1.0)
-                        data = numpy.random.normal(loc=mean, scale=std_dev, size=num_points)
-                        ppoints = numpy.linspace(0.01, 0.99, len(records_col))
-                        quantiles_sample = numpy.quantile(records_col, ppoints)
-                        quantiles_theoretical = stats.norm.ppf(ppoints)
-                        fig, ax = pyplot.subplots()
-                        ax.scatter(quantiles_theoretical, quantiles_sample)
-                        ax.plot([-4, 4], [-4, 4], color='r', linestyle='--')
-                        ax.set_xlabel("Theoretical Quantiles (Standard Normal)")
-                        ax.set_ylabel("Sample Quantiles")
-                        ax.set_title("QQ Plot")
-                        ax.grid(True)
-                        streamlit.pyplot(fig)
-                        
+                        streamlit.pyplot(fig)                       
                         
                     elif streamlit.checkbox("Logistic"):
                         records_col = records[column_to_dist]
@@ -1378,6 +1361,84 @@ elif selected_action_option == "Model builder":
                         records = pandas.read_excel(file_path)
                     if streamlit.checkbox(f"📄 Preview {selected_file}", key=f"preview_{selected_file}_model_builder_Non_Parametric_object"):
                         streamlit.write(records.head())
+                    # 
+                    Non_paremetric_options = streamlit.selectbox("Choose method", ["",
+                        "Statistical Inference", "Correlation",
+                        "Regression", "Classification"
+                    ])
+                    if Non_paremetric_options == "":
+                        streamlit.session_state["disable"] = True
+                    elif Non_paremetric_options == "Statistical Inference":
+                        Statistical_Inference_options = streamlit.selectbox("Choose your specific method", ["",
+                            "Mann-Whitney U Test", "Wilcoxon Signed-Rank Test",
+                            "Kruskal-Wallis H Test", "Friedman Test",
+                            "Kolmogorov-Smirnov (KS) Test", "Mood's Median Test",
+                            "Kernel Density Estimation (KDE)"
+                        ])
+
+                        if Statistical_Inference_options == "":
+                            streamlit.session_state["disable"] = True
+                        elif Statistical_Inference_options == "Mann-Whitney U Test":
+                            streamlit.write("Coming soon!")
+                        elif Statistical_Inference_options == "Wilcoxon Signed-Rank Test":
+                            streamlit.write("Coming soon!")
+                        elif Statistical_Inference_options == "Kruskal-Wallis H Test":
+                            streamlit.write("Coming soon!")
+                        elif Statistical_Inference_options == "Friedman Test":
+                            streamlit.write("Coming soon!")
+                        elif Statistical_Inference_options == "Kolmogorov-Smirnov (KS) Test":
+                            streamlit.write("Coming soon!")
+                        elif Statistical_Inference_options == "Mood's Median Test":
+                            streamlit.write("Coming soon!")
+                        elif Statistical_Inference_options == "Kernel Density Estimation (KDE)":
+                            streamlit.write("Coming soon!")
+
+                    elif Non_paremetric_options == "Correlation":
+                        Correlation_options = streamlit.selectbox("Choose your specific method", ["",
+                            "Spearman's Rho", "Kendall's Tau"
+                        ])
+                        if Correlation_options == "":
+                            streamlit.session_state["disable"] = True
+                        elif Correlation_options == "Spearman's Rho":
+                            streamlit.write("Coming soon!") 
+                        elif Correlation_options == "Kendall's Tau":
+                            streamlit.write("Coming soon!")
+
+                    elif Non_paremetric_options == "Regression":
+                        Regression_options = streamlit.selectbox("Choose your specific method", ["",
+                            "K-Nearest Neighbors (KNN)", "Regression Trees", "Kernel Regression",
+                            "Local Regression", "Multivariate Adaptive Regression Splines (MARS)",
+                            "Smoothing Splines"
+                        ])
+                        if Regression_options == "":
+                            streamlit.session_state["disable"] = True
+                        elif Regression_options == "K-Nearest Neighbors (KNN)":
+                            streamlit.write("Coming soon!") 
+                        elif Regression_options == "Regression Trees":
+                            streamlit.write("Coming soon!") 
+                        elif Regression_options == "Kernel Regression":
+                            streamlit.write("Coming soon!") 
+                        elif Regression_options == "Local Regression":
+                            streamlit.write("Coming soon!") 
+                        elif Regression_options == "Multivariate Adaptive Regression Splines (MARS)":
+                            streamlit.write("Coming soon!") 
+                        elif Regression_options == "Smoothing Splines":
+                            streamlit.write("Coming soon!") 
+
+                    elif Non_paremetric_options == "Classification":
+                        Classification_options = streamlit.selectbox("Choose your specific method", ["",
+                            "Decision Trees", "K-Nearest Neighbors (KNN)",
+                            "Support Vector Machines (SVM) with Gaussian Kernels"
+                        ]) 
+                        if Classification_options == "":
+                            streamlit.session_state["disable"] = True
+                        elif Classification_options == "Decision Trees":
+                            streamlit.write("Coming soon!")   
+                        elif Classification_options == "K-Nearest Neighbors (KNN)":
+                            streamlit.write("Coming soon!")  
+                        elif Classification_options == "Support Vector Machines (SVM) with Gaussian Kernels":
+                            streamlit.write("Coming soon!")  
+
                 except Exception as e:
                     streamlit.error(f"Failed to load file: {e}")
 
@@ -1636,11 +1697,11 @@ elif selected_action_option == "Model builder":
 
 
                 elif NN_options == "CNN – Convolutional Neural Network":
-                    "" 
+                    streamlit.write("Coming soon!")
                 elif NN_options == "RNN – Recurrent Neural Network":
-                    "" 
+                    streamlit.write("Coming soon!")
                 elif NN_options == "LSTM – Long Short-Term Memory Network":
-                    ""                                           
+                    streamlit.write("Coming soon!")                                          
 
             except Exception as e:
                 streamlit.error(f"Failed to load file: {e}")
