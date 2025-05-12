@@ -132,7 +132,7 @@ def auth_screen():
             if user and user.user:
                 if user.user.email:
                     streamlit.success("Registration successful. Please log in ...")
-                    streamlit.write("Email confirmation sent to you - please confirm then log-in")
+                    streamlit.info("Confirmation sent to you - please confirm then log-in")
             elif user:
                 streamlit.warning("Registration successful, but email not found in response.")
             else:
