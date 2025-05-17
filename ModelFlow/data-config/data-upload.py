@@ -1,7 +1,8 @@
-import streamlit, os, pandas, numpy, datetime, json, requests, pyodbc
+import streamlit, os, pandas, numpy, datetime, json, requests, pyodbc, gspread
+from gspread_dataframe import set_with_dataframe
 
 getdatachoices = [
-        "", "Upload CSV", "Upload Excel", "Add API", "Connect to SQL"
+        "", "Upload CSV", "Upload Excel", "Add API", "Connect to SQL", "Connect to Googlesheet"
     ]
 Options = streamlit.selectbox("Upload file options: ", getdatachoices)
 # CSV
@@ -190,6 +191,49 @@ elif Options == "Connect to SQL":
                                     streamlit.write(f"Error on your query: {e}")
             except Exception as e:
                 streamlit.write("Connection to SQL Server failed!")
+
+elif Options == "Connect to Googlesheet":
+    Spreadsheet_title = streamlit.text_input("Add your spreadsheet title", placeholder="Spreadsheet title at the top left of your spreadsheet")
+    Sheet_tab_name = streamlit.text_input("Add your sheet tab name", placeholder="Sheet tab name at the bottom")
+    Json_key_file = streamlit.text_area(
+        "Paste your json key",
+        placeholder="""
+        {
+          "type": "",
+          "project_id": "",
+          "private_key_id": "",
+          "private_key": "",
+          "client_email": "",
+          "client_id": "",
+          "auth_uri": "",
+          "token_uri": "",
+          "auth_provider_x509_cert_url": "",
+          "client_x509_cert_url": "",
+          "universe_domain": ""
+        }
+                    """, height=200
+                    )
+    if Spreadsheet_title and Sheet_tab_name and Json_key_file:
+        if streamlit.button("Connect Googlesheet"):
+            try:
+                json_key = json.loads(Json_key_file)
+                with open("json_key.json", "w") as file:
+                    json.dump(json_key, file)
+                worksheet = gspread.service_account("json_key.json").open(Spreadsheet_title).worksheet(Sheet_tab_name)
+                dict_records = worksheet.get_all_records()
+                streamlit.success("Connected successfully to your Spreadsheet!")
+                streamlit.write(pandas.DataFrame(dict_records).head())
+            except json.JSONDecodeError:
+                streamlit.error("Invalid JSON format. Please check your pasted key.")
+            except gspread.exceptions.SpreadsheetNotFound:
+                streamlit.error(f"Spreadsheet '{Spreadsheet_title}' not found.")
+            except gspread.exceptions.WorksheetNotFound:
+                streamlit.error(f"Sheet tab '{Sheet_tab_name}' not found in '{Spreadsheet_title}'.")
+            except Exception as e:
+                streamlit.error(f"An error occurred: {e}")
+
+    else:
+        streamlit.warning("Please fill in all the connection details.")    
 
 
 # http://127.0.0.1:8000/items_processed
