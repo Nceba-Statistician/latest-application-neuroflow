@@ -1487,7 +1487,7 @@ elif selected_action_option == "Model builder":
                         elif non_numeric_predictors:
                             streamlit.warning(f"The following selected predictor columns are not numeric: {', '.join(records[non_numeric_predictors])}")   
 
-                        elif pandas.api.types.is_numeric_dtype(records[target_column]) and numeric_predictor_columns:
+                        elif target_column and numeric_predictor_columns:
                             if target_column in numeric_predictor_columns:
                                 streamlit.warning("Target column cannot be one of the predictor columns.")
                             else:
@@ -1687,11 +1687,12 @@ elif selected_action_option == "Model builder":
                                                         file.write(f"{col}\n")
                                             except Exception as e:
                                                 streamlit.error(f"An error occurred while saving the Keras model predictor columns: {e}") 
-                                                full_path_keras_model_target_column = os.path.join(keras_model_save_path, f"{model_name}_target.txt")    
-                                                try:
-                                                    with open(full_path_keras_model_target_column, 'w') as file:
-                                                        file.write(target_column + "\n")
-                                                except Exception as e:
+                                                
+                                            full_path_keras_model_target_column = os.path.join(keras_model_save_path, f"{model_name}_target.txt")    
+                                            try:
+                                                with open(full_path_keras_model_target_column, 'w') as file:
+                                                    file.write(target_column + "\n")
+                                            except Exception as e:
                                                     streamlit.error(f"An error occurred while saving the Keras model target column: {e}")       
                                                         
                                         except Exception as e:
