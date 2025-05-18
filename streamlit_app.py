@@ -4,6 +4,7 @@ from sklearn.model_selection import train_test_split
 from matplotlib import pyplot
 from supabase import create_client, Client
 from plotly import express
+from streamlit_cookies_controller import CookieController
 
 streamlit.set_page_config(page_title="neuroflow application", layout="wide", initial_sidebar_state="auto")
 

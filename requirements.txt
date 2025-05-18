@@ -14,8 +14,7 @@ scipy
 supabase
 plotly
 fpdf
-gspread
-gspread_dataframe
+streamlit_cookies_controller
 
 
 
