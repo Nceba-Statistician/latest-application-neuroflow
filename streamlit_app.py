@@ -7,7 +7,7 @@ from plotly import express
 from streamlit_cookies_controller import CookieController
 
 streamlit.set_page_config(page_title="neuroflow application", layout="wide", initial_sidebar_state="auto")
-
+cookie_controller = CookieController()
 
 supabase_url = streamlit.secrets["SUPABASE_URL"] 
 supabase_key = streamlit.secrets["SUPABASE_KEY"]
@@ -33,6 +33,7 @@ def sign_out():
     try:
         supabase.auth.sign_out()
         streamlit.session_state["user_email"] = None
+        cookie_controller.set("logged_in_email", "", max_age=0)
         streamlit.rerun()
 
     except Exception as e:
@@ -117,6 +118,7 @@ def auth_screen():
         if user and user.user:
             if user.user.email:
                 streamlit.session_state["user_email"] = user.user.email
+                cookie_controller.set("logged_in_email", user.user.email, max_age=1*24*3600)
                 streamlit.success(f"Welcome back {email}")
                 streamlit.rerun()
             else:
@@ -155,7 +157,7 @@ def auth_screen():
             
 
 if "user_email" not in streamlit.session_state:
-    streamlit.session_state["user_email"] = None
+    streamlit.session_state["user_email"] = cookie_controller.get("logged_in_email")
     
 
 if streamlit.session_state["user_email"]:
