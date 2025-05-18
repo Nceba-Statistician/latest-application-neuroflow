@@ -129,3 +129,38 @@ else:
 
     except Exception as e:
         streamlit.error(f"Failed to load chart: {e}")
+
+# Neural Networks         
+
+save_path_root = "ModelFlow"
+keras_model_save_path = os.path.join(save_path_root, "models", "saved-neural-network-Keras")
+os.makedirs(keras_model_save_path, exist_ok=True)
+
+saved_keras_Neural_Networks = [
+    files for files in os.listdir(keras_model_save_path) if files.endswith(".h5")
+]
+
+selected_keras_model = streamlit.selectbox("", [""] + saved_keras_Neural_Networks, key="keras model")
+
+if selected_keras_model == "":
+    streamlit.session_state["disable"] = True
+    if chart_choices is None:
+        streamlit.info("You haven’t saved any keras model yet.")
+    else:
+        streamlit.info("Please select keras model to delete.")
+else:
+    keras_model_path = os.path.join(keras_model_save_path, selected_keras_model)
+    predictors_keras_model_path = os.path.join(keras_model_save_path, f"{selected_keras_model.replace('.h5', '.txt')}")
+    target_keras_model_path = os.path.join(keras_model_save_path, f"{selected_keras_model.replace('.h5', '_target.txt')}")
+    try:
+        if selected_keras_model.endswith(".h5"):
+            if streamlit.button(f"🗑️ Delete {selected_keras_model}"):
+                os.remove(keras_model_path)
+                os.remove(predictors_keras_model_path)
+                os.remove(target_keras_model_path)
+                streamlit.success(f"{selected_keras_model} deleted successfully!") 
+        else:
+            streamlit.info("The keras model is not saved as h5")       
+
+    except Exception as e:
+        streamlit.error(f"Failed to load keras model: {e}")

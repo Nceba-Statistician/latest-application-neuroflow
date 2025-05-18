@@ -1475,198 +1475,218 @@ elif selected_action_option == "Model builder":
                     columns_list = records.columns.tolist()
                     target_column = streamlit.selectbox("Select target column", [""] + columns_list, key="target")
                     predictor_columns = streamlit.multiselect("Select predictor columns", columns_list, key="predictors")
-                    if len(predictor_columns) > 0 and target_column:
-                        if target_column in predictor_columns:
-                            streamlit.warning("Target column cannot be one of the predictor columns.")
-                        else:
-                            predictors_col = records[predictor_columns]
-                            target_col = records[target_column].values.reshape(-1, 1)
-                            test_size_percentage = streamlit.number_input(
-                                "Add test size (e.g., 0.2)", min_value=0.0, max_value=1.0, step=0.1, format="%.1f"
-                                )
-                            First_dense_value = streamlit.number_input(
-                                "Add First Dense (e.g., 64)", min_value=1, step=1, format="%d"
-                                )
-                            Second_dense_value = streamlit.number_input(
-                                "Add second Dense (e.g., 32)", min_value=1, step=1, format="%d"
-                                )
-                            Dropout_value = streamlit.number_input(
-                                "Add Dropout (e.g., 0.2)", min_value=0.0, max_value=1.0, step=0.1, format="%.1f"
-                                ) # epochs
-                            epochs_value = streamlit.number_input(
-                                "Add epochs (e.g., 100)", min_value=10, step=1, format="%d"
-                                )
-                            Activation_function = streamlit.selectbox("Choose activation function", ["", "relu"])
-                            Optional_date = streamlit.selectbox("Select date (Optional) for time steps", [""] + columns_list, key="time steps")
-                            if test_size_percentage is not None and 0 < test_size_percentage <= 1 and First_dense_value > 0 and Second_dense_value > 0 and 0 <= Dropout_value < 1 and epochs_value >=10 and Activation_function:
-                                X_train, X_test, y_train, y_test = train_test_split(predictors_col, target_col, test_size=test_size_percentage, random_state=42)                   
-                                scaler = StandardScaler()
-                                X_train = scaler.fit_transform(X_train)
-                                X_test = scaler.transform(X_test)
-                                
-                                model = Sequential([
-                                    Input(shape=(X_train.shape[1], )),
-                                    Dense(First_dense_value, activation=Activation_function),
-                                    Dropout(Dropout_value),
-                                    Dense(Second_dense_value, activation=Activation_function),
-                                    Dropout(Dropout_value),
-                                    Dense(1, activation=None, name="output_layer")
-                                    ])
-                                
-                                model.compile(optimizer="Adam", loss="mean_squared_error", metrics=["mae"])
-                                log_dir = "logs/" + datetime.datetime.now().strftime("%d_%m_%Y - %H_%M_%S")
-                                tensorboard_callback = TensorBoard(log_dir=log_dir, histogram_freq=1)
 
-                                if streamlit.button("Train Model", key="train model"):
+                    if target_column and predictor_columns:
+                        non_numeric_target = not pandas.api.types.is_numeric_dtype(records[target_column])
+                        non_numeric_predictors = [col for col in predictor_columns if not pandas.api.types.is_numeric_dtype(records[col])]
+                        numeric_predictor_columns = [col for col in predictor_columns if pandas.api.types.is_numeric_dtype(records[col])]
 
-                                    progress_bar = streamlit.progress(0)
-                                    status_text = streamlit.empty()
-                                    epochs = epochs_value
-                                    
-                                    def update_progress(epoch, logs):
-                                        progress = (epoch + 1) / epochs
-                                        progress_bar.progress(progress)
-                                        status_text.text(f"Training in progress... Epoch {epoch + 1}/{epochs}")
-                                        if epoch == epochs - 1:
-                                            status_text.success("Training complete!")
+                        if non_numeric_target:
+                            streamlit.warning(f"Your target column '{target_column}' is not an integer, it has '{records[target_column].dtype}' data type.")
+
+                        elif non_numeric_predictors:
+                            streamlit.warning(f"The following selected predictor columns are not numeric: {', '.join(records[non_numeric_predictors])}")   
+
+                        elif pandas.api.types.is_numeric_dtype(records[target_column]) and numeric_predictor_columns:
+                            if target_column in numeric_predictor_columns:
+                                streamlit.warning("Target column cannot be one of the predictor columns.")
+                            else:
+                                predictors_col = records[numeric_predictor_columns]
+                                target_col = records[target_column].values.reshape(-1, 1)
+                                test_size_percentage = streamlit.number_input(
+                                    "Add test size (e.g., 0.2)", min_value=0.0, max_value=1.0, step=0.1, format="%.1f"
+                                    )
+                                First_dense_value = streamlit.number_input(
+                                    "Add First Dense (e.g., 64)", min_value=1, step=1, format="%d"
+                                    )
+                                Second_dense_value = streamlit.number_input(
+                                    "Add second Dense (e.g., 32)", min_value=1, step=1, format="%d"
+                                    )
+                                Dropout_value = streamlit.number_input(
+                                    "Add Dropout (e.g., 0.2)", min_value=0.0, max_value=1.0, step=0.1, format="%.1f"
+                                    )
+                                epochs_value = streamlit.number_input(
+                                    "Add epochs (e.g., 100)", min_value=10, step=1, format="%d"
+                                    )
+                                Activation_function = streamlit.selectbox("Choose activation function", ["", "relu"])
+                                Optional_date = streamlit.selectbox("Select date (Optional) for time steps", [""] + columns_list, key="time steps")
+                                model_name = streamlit.text_input("Name your model", placeholder="Your model name")
+                                if test_size_percentage is not None and 0 < test_size_percentage <= 1 and First_dense_value > 0 and Second_dense_value > 0 and 0 <= Dropout_value < 1 and epochs_value >=10 and Activation_function and model_name:
+                                    if streamlit.button("Train and save Model", key="train model"):
+                                        X_train, X_test, y_train, y_test = train_test_split(predictors_col, target_col, test_size=test_size_percentage, random_state=42)                   
+                                        scaler = StandardScaler()
+                                        X_train = scaler.fit_transform(X_train)
+                                        X_test = scaler.transform(X_test)
+                                        model = Sequential([
+                                            Input(shape=(X_train.shape[1], )),
+                                            Dense(First_dense_value, activation=Activation_function),
+                                            Dropout(Dropout_value),
+                                            Dense(Second_dense_value, activation=Activation_function),
+                                            Dropout(Dropout_value),
+                                            Dense(1, activation=None, name="output_layer")
+                                            ])
+                                        model.compile(optimizer="Adam", loss="mean_squared_error", metrics=["mae"])
+                                        log_dir = "logs/" + datetime.datetime.now().strftime("%d_%m_%Y - %H_%M_%S")
+                                        tensorboard_callback = TensorBoard(log_dir=log_dir, histogram_freq=1)
+
+                                        progress_bar = streamlit.progress(0)
+                                        status_text = streamlit.empty()
+                                        epochs = epochs_value
+                                        
+                                        def update_progress(epoch, logs):
+                                            progress = (epoch + 1) / epochs
+                                            progress_bar.progress(progress)
+                                            status_text.text(f"Training in progress... Epoch {epoch + 1}/{epochs}")
+                                            if epoch == epochs - 1:
+                                                status_text.success("Training complete!")
                                             
-                                    progress_callback = LambdaCallback(on_epoch_end=update_progress)    
-
-                                    history = model.fit(
-                                        X_train, y_train,
-                                        epochs=epochs,
-                                        callbacks=[tensorboard_callback, progress_callback],
-                                        verbose=0  # Suppressed Keras output
-                                        )
-
-                                    y_pred = model.predict(X_test)
-
-                                    mse = mean_squared_error(y_test, y_pred)
-                                    r2 = r2_score(y_test, y_pred)
-                                    col_skew_kurt, col_JB, col_WD, col_CI, col_mse, col_r = streamlit.columns(6)
+                                        progress_callback = LambdaCallback(on_epoch_end=update_progress)    
                                             
-                                    with col_skew_kurt:
-                                        with streamlit.expander("Skewness and Kurtosis"):
-                                            streamlit.write("**Skewness**: Measure of the asymmetry of a probability distribution about its mean.")
-                                            streamlit.write("**Kurtosis**: Measure of the 'tailedness'or peakedness of a probability distribution."
-                                                            "It describes how heavy or light the tails of the distribution are relative to a normal distribution.")  
-                                            streamlit.write("**Mesokurtic**: Kurtosis is around 3 (excess kurtosis around 0)")
-                                            streamlit.write("**Leptokurtic**: Kurtosis is greater than 3 (excess kurtosis greater than 0)")
-                                            streamlit.write("**Platykurtic**: Kurtosis is less than 3 (excess kurtosis less than 0)") 
-                                            streamlit.write("**Since the kurtosis of a normal distribution is 3, then **Excess Kurtosis=Kurtosis−3**")
+                                        history = model.fit(
+                                            X_train, y_train,
+                                            epochs=epochs,
+                                            callbacks=[tensorboard_callback, progress_callback],
+                                            verbose=0
+                                            )
 
-                                    with col_JB:
-                                        with streamlit.expander("Jarque-Bera (JB)"):
-                                            streamlit.write("is a goodness-of-fit test used to check if the residuals of a regression model follow a normal distribution." \
-                                            "It assesses this by looking at the skewness (a measure of the asymmetry of the distribution)"
-                                            "and kurtosis (a measure of the 'tailedness' or peakedness of the distribution) of the residuals.")
-                                            streamlit.write("Null Hypothesis: The residuals are normally distributed.")
-                                            streamlit.write("Alternative Hypothesis: The residuals are not normally distributed.")
-                                            streamlit.write("If the residuals are not normally distributed, these inferences such as t-test and F-test might not be entirely reliable, especially in small samples.")
+                                        col_skew_kurt, col_JB, col_WD, col_CI, col_mse, col_r = streamlit.columns(6)
+                                        with col_skew_kurt:
+                                            with streamlit.expander("Skewness and Kurtosis"):
+                                                streamlit.write("**Skewness**: Measure of the asymmetry of a probability distribution about its mean.")
+                                                streamlit.write("**Kurtosis**: Measure of the 'tailedness'or peakedness of a probability distribution."
+                                                                "It describes how heavy or light the tails of the distribution are relative to a normal distribution.")  
+                                                streamlit.write("**Mesokurtic**: Kurtosis is around 3 (excess kurtosis around 0)")
+                                                streamlit.write("**Leptokurtic**: Kurtosis is greater than 3 (excess kurtosis greater than 0)")
+                                                streamlit.write("**Platykurtic**: Kurtosis is less than 3 (excess kurtosis less than 0)") 
+                                                streamlit.write("**Since the kurtosis of a normal distribution is 3, then **Excess Kurtosis=Kurtosis−3**")
 
-                                    with col_WD:
-                                        with streamlit.expander("Durbin-Watson (DW)"):
-                                            streamlit.write("Detect the presence of first-order autocorrelation in the residuals of a regression model. Autocorrelation means that the residuals are correlated with their own past values." \
-                                                            "First-order autocorrelation specifically looks at the correlation between a residual and the residual immediately preceding it.")
-                                            streamlit.write("Null Hypothesis: There is no first-order autocorrelation in the residuals.")
-                                            streamlit.write("Alternative Hypothesis: There is first-order autocorrelation in the residuals (can be positive or negative).")
-                                            streamlit.write("Interpretation: A DW statistic around **2** suggests little to no first-order autocorrelation.")
-                                            streamlit.write("Interpretation: A value **significantly less than 2** suggests positive autocorrelation"
-                                                            "(positive residuals tend to be followed by positive residuals, and negative by negative).")
-                                            streamlit.write("Positive autocorrelation -> Example: If today's stock return was high, tomorrow's might also tend to be somewhat high.")
-                                            streamlit.write("A value **significantly greater than 2** suggests negative autocorrelation"
-                                                            "(positive residuals tend to be followed by negative residuals, and vice versa).")
-                                            streamlit.write("Negative autocorrelation -> Example: In an assembly line, if one piece is slightly too long, the next might be made slightly shorter to compensate.")
+                                        with col_JB:
+                                            with streamlit.expander("Jarque-Bera (JB)"):
+                                                streamlit.write("is a goodness-of-fit test used to check if the residuals of a regression model follow a normal distribution." \
+                                                                "It assesses this by looking at the skewness (a measure of the asymmetry of the distribution)"
+                                                                "and kurtosis (a measure of the 'tailedness' or peakedness of the distribution) of the residuals.")
+                                                streamlit.write("Null Hypothesis: The residuals are normally distributed.")
+                                                streamlit.write("Alternative Hypothesis: The residuals are not normally distributed.")
+                                                streamlit.write("If the residuals are not normally distributed, these inferences such as t-test and F-test might not be entirely reliable, especially in small samples.")
+
+                                        with col_WD:
+                                            with streamlit.expander("Durbin-Watson (DW)"):
+                                                streamlit.write("Detect the presence of first-order autocorrelation in the residuals of a regression model. Autocorrelation means that the residuals are correlated with their own past values." \
+                                                                "First-order autocorrelation specifically looks at the correlation between a residual and the residual immediately preceding it.")
+                                                streamlit.write("Null Hypothesis: There is no first-order autocorrelation in the residuals.")
+                                                streamlit.write("Alternative Hypothesis: There is first-order autocorrelation in the residuals (can be positive or negative).")
+                                                streamlit.write("Interpretation: A DW statistic around **2** suggests little to no first-order autocorrelation.")
+                                                streamlit.write("Interpretation: A value **significantly less than 2** suggests positive autocorrelation"
+                                                                "(positive residuals tend to be followed by positive residuals, and negative by negative).")
+                                                streamlit.write("Positive autocorrelation -> Example: If today's stock return was high, tomorrow's might also tend to be somewhat high.")
+                                                streamlit.write("A value **significantly greater than 2** suggests negative autocorrelation"
+                                                                "(positive residuals tend to be followed by negative residuals, and vice versa).")
+                                                streamlit.write("Negative autocorrelation -> Example: In an assembly line, if one piece is slightly too long, the next might be made slightly shorter to compensate.")
 
 
-                                    with col_CI:
-                                        with streamlit.expander("Confidence Interval"):
-                                            streamlit.write("If our value spans from a negative value to a positive value)," \
-                                                            "it generally means that there is no statistically significant evidence at the chosen confidence level (e.g., 95%)" \
-                                                                "that the true coefficient is different from zero.")
-                                            streamlit.write("For uncertainty, the width of the interval reflects the uncertainty in our estimate of the coefficient." \
-                                                            "A wider interval indicates more uncertainty, often due to factors like smaller sample size or higher variability in the data." \
-                                                                "A narrower interval suggests a more precise estimate.")
+                                        with col_CI:
+                                            with streamlit.expander("Confidence Interval"):
+                                                streamlit.write("If our value spans from a negative value to a positive value)," \
+                                                                "it generally means that there is no statistically significant evidence at the chosen confidence level (e.g., 95%)" \
+                                                                    "that the true coefficient is different from zero.")
+                                                streamlit.write("For uncertainty, the width of the interval reflects the uncertainty in our estimate of the coefficient." \
+                                                                "A wider interval indicates more uncertainty, often due to factors like smaller sample size or higher variability in the data." \
+                                                                    "A narrower interval suggests a more precise estimate.")
 
-                                        # metrics_description = pandas.DataFrame({
-                                            # "Mean Square Error :": [f"{mse:.4f}"],
-                                            # "R-Squared: ": [f"{r2:.4f}"]
-                                           #  })
-                                    # streamlit.markdown(metrics_description.style.hide(axis="index").to_html(), unsafe_allow_html=True)
+                                        with col_mse:
+                                            with streamlit.expander("Mean Square Error"):
+                                                streamlit.write("Mean Square Error measures prediction accuracy. It tells us how far, on average, our model's predictions are from the true values. A lower MSE indicates better performance, with the metric being particularly sensitive to large prediction errors.")
 
-                                    with col_mse:
-                                        with streamlit.expander("Mean Square Error"):
-                                            streamlit.write("Mean Square Error measures prediction accuracy. It tells us how far, on average, our model's predictions are from the true values. A lower MSE indicates better performance, with the metric being particularly sensitive to large prediction errors.")
-                                    with col_r:
-                                        with streamlit.expander("R-Squared"):
-                                            streamlit.write("1 means the model perfectly explains the variance.")
-                                            streamlit.write("0 means the model explains none of the variance.")       
+                                        with col_r:
+                                            with streamlit.expander("R-Squared"):
+                                                streamlit.write("1 means the model perfectly explains the variance.")
+                                                streamlit.write("0 means the model explains none of the variance.")       
 
-                                    # lr = LinearRegression()
-                                    # lr_FNN = lr.fit(X_train, y_train)
+                                        y_pred_train = model.predict(X_train)
+                                            
+                                        mse = mean_squared_error(y_train, y_pred_train)
+                                        r2 = r2_score(y_train, y_pred_train)
 
-                                    X_train_constant = api.add_constant(X_train)
-                                    model_FNN = api.OLS(y_train, X_train_constant).fit()
-                                    streamlit.write(model_FNN.summary())
 
-                                    fig, ax = pyplot.subplots(figsize=(6, 4))
-                                    ax.plot(history.history["loss"], label="Training Loss")
-                                    ax.set_xlabel("Epochs")
-                                    ax.set_ylabel("Mean Squared Error")
-                                    ax.set_title("Training Loss vs Epochs")
-                                    ax.legend()
-                                    streamlit.pyplot(fig)
+                                        model_mse_r2 = pandas.DataFrame({
+                                            "Mean Square Error": [f"{mse:.4f}"],
+                                            "R-Squared": [f"{r2:.4f}"]
+                                        })
+                                        streamlit.dataframe(model_mse_r2, hide_index=True)
 
-                                    if Optional_date == "":
-                                        observed_values = y_test.flatten()
-                                        predicted_values = y_pred.flatten()
-                                        time_steps = numpy.arange(len(observed_values))
+                                        streamlit.write(f"This {r2*100:.2f}% has been calculated during keras model training.")
+
+                                        if r2 < 0.5:
+                                            streamlit.info(f"Your model performance {r2*100:.2f}% is below 50% - not good, please adjust your predictors.")
+                                        elif 0.5 <= r2 < 0.75:
+                                            streamlit.success(f"Your model performance {r2*100:.2f}% is good but not best, you could adjust your predictors depending on your goal.")  
+
+                                        elif 0.75 <= r2 < 0.95:
+                                            streamlit.success(f"Your model performance {r2*100:.2f}% is great!")
+                                        elif r2 >= 0.95:
+                                            streamlit.warning(f"Your model performance {r2*100:.2f}%, there is a possiblity of model overfitting.") 
+
+                                        streamlit.write(f"While the below 'R-Squared' has been calculated by Ordinary Least Square.")
+                                        streamlit.write("Please consider Ordinary Least Square for identifying useful predictors on your model.")   
+
+                                        X_train_constant = api.add_constant(X_train)
+                                        model_FNN = api.OLS(y_train, X_train_constant).fit()
+                                        streamlit.write(model_FNN.summary())
                                         
                                         fig, ax = pyplot.subplots(figsize=(6, 4))
-                                        ax.plot(time_steps, observed_values, label='Observed', marker='o', linestyle='-')
-                                        ax.plot(time_steps, predicted_values, label='Predicted', marker='x', linestyle='--')
-                                        ax.set_xlabel("Time Steps (or Index)")
-                                        ax.set_ylabel("Value")
-                                        ax.set_title("Observed vs. Predicted Values")
+                                        ax.plot(history.history["loss"], label="Training Loss")
+                                        ax.set_xlabel("Epochs")
+                                        ax.set_ylabel("Mean Squared Error")
+                                        ax.set_title("Training Loss vs Epochs")
                                         ax.legend()
-                                        ax.grid(True)
                                         streamlit.pyplot(fig)
-
-                                    else:
-                                        time_steps = records[Optional_date].values.flatten()[-len(y_test):]
-                                        observed_values = y_test.flatten()
-                                        predicted_values = y_pred.flatten()
-                                        if len(time_steps) == len(observed_values):
+                                        
+                                        if Optional_date == "":
+                                            observed_values = y_train.flatten()
+                                            predicted_values = y_pred_train.flatten()
+                                            time_steps = numpy.arange(len(observed_values))
+                                            
                                             fig, ax = pyplot.subplots(figsize=(6, 4))
                                             ax.plot(time_steps, observed_values, label='Observed', marker='o', linestyle='-')
                                             ax.plot(time_steps, predicted_values, label='Predicted', marker='x', linestyle='--')
-                                            ax.set_xlabel(Optional_date)
+                                            ax.set_xlabel("Time Steps (or Index)")
                                             ax.set_ylabel("Value")
-                                            ax.set_title("Observed vs. Predicted Values Over Time")
+                                            ax.set_title("Observed vs. Predicted Values")
                                             ax.legend()
                                             ax.grid(True)
                                             streamlit.pyplot(fig)
+
                                         else:
-                                            streamlit.warning(f"The length of the selected date column ('{Optional_date}') does not match the length of the test data. Please check your data and date selection.")
-                                if streamlit.checkbox("After training save your model"):
-                                    streamlit.write("If you're satisfied with the model's performance, you may proceed to save it.")
-                                    model_name = streamlit.text_input("Name your model")
-                                    if model_name:
-                                        if streamlit.button("Save model", key="save model"):
-                                            save_path_root = "ModelFlow"
-                                            keras_model_save_path = os.path.join(save_path_root, "models", "saved-neural-network-Keras")
-                                            os.makedirs(keras_model_save_path, exist_ok=True)
-                                            full_path_keras_model = os.path.join(keras_model_save_path, f"{model_name}.h5")
+                                            time_steps = records[Optional_date].values.flatten()[-len(y_test):]
+                                            observed_values = y_train.flatten()
+                                            predicted_values = y_pred_train.flatten()
+                                            if len(time_steps) == len(observed_values):
+                                                fig, ax = pyplot.subplots(figsize=(6, 4))
+                                                ax.plot(time_steps, observed_values, label='Observed', marker='o', linestyle='-')
+                                                ax.plot(time_steps, predicted_values, label='Predicted', marker='x', linestyle='--')
+                                                ax.set_xlabel(Optional_date)
+                                                ax.set_ylabel("Value")
+                                                ax.set_title("Observed vs. Predicted Values Over Time")
+                                                ax.legend()
+                                                ax.grid(True)
+                                                streamlit.pyplot(fig)
+                                            else:
+                                                streamlit.warning(f"The length of the selected date column ('{Optional_date}') does not match the length of the test data. Please check your data and date selection.")
+
+                                        save_path_root = "ModelFlow"
+                                        keras_model_save_path = os.path.join(save_path_root, "models", "saved-neural-network-Keras")
+                                        os.makedirs(keras_model_save_path, exist_ok=True)
+                                        full_path_keras_model = os.path.join(keras_model_save_path, f"{model_name}.h5")
+                                        try:
+                                            save_model(model, full_path_keras_model)
+                                            streamlit.success(f"✅ You have successfully saved your Keras model '{model_name}'")
+                                            full_path_keras_model_predictor_columns = os.path.join(keras_model_save_path, f"{model_name}.txt")
                                             try:
-                                                save_model(model, full_path_keras_model)
-                                                streamlit.success(f"✅ You have successfully saved your Keras model '{model_name}'")
-                                                full_path_keras_model_predictor_columns = os.path.join(keras_model_save_path, f"{model_name}.txt")
-                                                try:
-                                                    with open(full_path_keras_model_predictor_columns, 'w') as file:
-                                                        for col in predictor_columns:
-                                                            file.write(f"{col}\n")
-                                                except Exception as e:
-                                                    streamlit.error(f"An error occurred while saving the Keras model predictor columns: {e}") 
+                                                with open(full_path_keras_model_predictor_columns, 'w') as file:
+                                                    for col in predictor_columns:
+                                                        file.write(f"{col}\n")
+                                            except Exception as e:
+                                                streamlit.error(f"An error occurred while saving the Keras model predictor columns: {e}") 
                                                 full_path_keras_model_target_column = os.path.join(keras_model_save_path, f"{model_name}_target.txt")    
                                                 try:
                                                     with open(full_path_keras_model_target_column, 'w') as file:
@@ -1674,27 +1694,24 @@ elif selected_action_option == "Model builder":
                                                 except Exception as e:
                                                     streamlit.error(f"An error occurred while saving the Keras model target column: {e}")       
                                                         
-                                            except Exception as e:
+                                        except Exception as e:
                                                 streamlit.error(f"An error occurred while saving the Keras model: {e}") 
-                                ""
-                            elif test_size_percentage is not None and (test_size_percentage <= 0 or test_size_percentage > 1):
-                                streamlit.warning("Test size should be between 0.0 and 1.0 (exclusive of 0).")
-                            elif First_dense_value <= 0 or Second_dense_value <= 0:
-                                streamlit.warning("Dense layer values should be greater than 0.")
-                            elif Dropout_value < 0 or Dropout_value >= 1:
-                                streamlit.warning("Dropout value should be between 0.0 and less than 1.0.")
-                            elif epochs_value < 10:
-                                streamlit.warning("epochs should be at least 10 or above for better training process")
-                                streamlit.write("Think of it like this:")
-                                streamlit.write("You have a textbook (your training data).")
-                                streamlit.write("One **epoch** is like reading the entire textbook from cover to cover once.")
-                            elif not Activation_function:
-                                streamlit.warning("Please choose an activation function.")
 
-                    elif len(predictor_columns) < 0 and target_column:
-                        streamlit.warning("Please select at least one predictor column.")
-
-
+                                elif test_size_percentage is not None and (test_size_percentage <= 0 or test_size_percentage > 1):
+                                    streamlit.warning("Test size should be between 0.0 and 1.0 (exclusive of 0).")
+                                elif First_dense_value <= 0 or Second_dense_value <= 0:
+                                    streamlit.warning("Dense layer values should be greater than 0.")
+                                elif Dropout_value < 0 or Dropout_value >= 1:
+                                    streamlit.warning("Dropout value should be between 0.0 and less than 1.0.")
+                                elif epochs_value < 10:
+                                    streamlit.warning("epochs should be at least 10 or above for better training process")
+                                    streamlit.write("Think of it like this:")
+                                    streamlit.write("You have a textbook (your training data).")
+                                    streamlit.write("One **epoch** is like reading the entire textbook from cover to cover once.")
+                                elif not Activation_function:
+                                    streamlit.warning("Please choose an activation function.")
+                                elif not model_name:
+                                    streamlit.warning("Please enter your model name")   
 
                 elif NN_options == "CNN – Convolutional Neural Network":
                     streamlit.write("Coming soon!")

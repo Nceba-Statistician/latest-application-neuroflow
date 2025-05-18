@@ -1,5 +1,0 @@
-Product_Category
-Quantity
-Gender
-Price_per_Unit
-Total_Amount
