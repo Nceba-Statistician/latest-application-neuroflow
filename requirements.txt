@@ -16,6 +16,8 @@ plotly
 fpdf
 streamlit_cookies_controller
 keras
+keras.api
+
 
 
 
