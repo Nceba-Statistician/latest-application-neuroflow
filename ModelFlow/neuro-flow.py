@@ -6,7 +6,7 @@ from sklearn.preprocessing import StandardScaler
 from matplotlib import pyplot
 from tensorflow.python.keras.callbacks import TensorBoard, LambdaCallback
 from scipy import stats
-from statsmodels import api
+# from statsmodels import api
 from statsmodels.api import OLS
 import datetime
 from sklearn.impute import KNNImputer
