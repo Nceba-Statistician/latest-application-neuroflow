@@ -1,10 +1,10 @@
 import streamlit, tensorflow, os, pandas, numpy, seaborn, pickle
-from keras.api.models import Sequential, save_model, load_model
-from keras.api.layers import Dense, Dropout, Input
+from tensorflow.python.keras.models import Sequential, save_model, load_model
+from tensorflow.python.keras.layers import  Dense, Dropout, Input
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from matplotlib import pyplot
-from keras.api.callbacks import TensorBoard, LambdaCallback
+from tensorflow.python.keras.callbacks import TensorBoard, LambdaCallback
 from scipy import stats
 from statsmodels import api
 import datetime
